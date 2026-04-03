@@ -110,7 +110,7 @@ void OnUnitDamaged() {
         if (Jass::GetRandomReal(0, 100) < srcData.totalStats.critChance)
             finalDamage *= (1 + srcData.totalStats.critDamage / 100);
     }
-
+    Jass::ConsolePrint("Dealing damage: " + finalDamage + " from " + ((source != nil) ? Jass::GetUnitName(source) : "nil") + " to " + ((target != nil) ? Jass::GetUnitName(target) : "nil"));
     Jass::SetEventDamage(finalDamage);
 
     if (isTrigger) {
@@ -152,6 +152,7 @@ void DealDamage(unit source, unit target, float amount, damagetype dmgType, Dama
     gDmg_Amount     = amount;
     @gDmg_Callback  = @cb;
 
+    
     // Даммик источника (по владельцу source, fallback = Player(15))
     int pid = 15;
     if (source != nil)

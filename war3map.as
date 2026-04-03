@@ -1,3 +1,10 @@
+
+
+array<unit> g_VK(12);
+array<unit> g_VisionGiver(12);
+array<unit> g_HeroTaker(12);
+array<unit> g_HeroTaker2(12);
+
 #include "MainPart.as"
 
 void config() {
@@ -332,61 +339,72 @@ void main() {
     Jass::SetMapMusic("Music", true, 0);
     CreateAllDestructables();
     Jass::SetDayNightModels("Environment\\DNC\\DNCDalaran\\DNCDalaranTerrain\\DNCDalaranTerrain.mdl", "Environment\\DNC\\DNCDalaran\\DNCDalaranUnit\\DNCDalaranUnit.mdl");
-    MainPart();
+    
     Jass::CreateUnit(Jass::Player(15), 'h085', -7232.0, 5312.0, 270.000);
     Jass::CreateUnit(Jass::Player(15), 'h00F', -6512.6, 5159.5, 35.774);
     Jass::CreateUnit(Jass::Player(15), 'n00B', -6528.0, 6592.0, 270.000);
     Jass::CreateUnit(Jass::Player(15), 'h08A', -7168.0, 5056.0, 270.000);
-    Jass::CreateUnit(Jass::Player(6), 'h088', -6537.8, 6856.2, 66.734);
-    Jass::CreateUnit(Jass::Player(0), 'h08F', -6629.3, 6885.0, 92.870);
-    Jass::CreateUnit(Jass::Player(15), 'h03C', -1288.0, 1453.9, 78.104);
-    Jass::CreateUnit(Jass::Player(15), 'h01O', -864.0, 2080.0, 270.000);
-    Jass::CreateUnit(Jass::Player(15), 'h01O', 3872.0, 2016.0, 270.000);
+
+    g_VK[0] = Jass::CreateUnit(Jass::Player(15), 'h01O', -864.0, 2080.0, 270.000);
+    g_VK[1] = Jass::CreateUnit(Jass::Player(15), 'h01O', 3872.0, 2016.0, 270.000);
     Jass::CreateUnit(Jass::Player(11), 'h02A', -7167.9, 5051.3, 131.460);
-    Jass::CreateUnit(Jass::Player(0), 'h088', -6529.1, 6851.9, 119.661);
-    Jass::CreateUnit(Jass::Player(9), 'h08F', -6628.4, 6815.7, 50.340);
-    Jass::CreateUnit(Jass::Player(1), 'h088', -6505.9, 6824.7, 123.129);
-    Jass::CreateUnit(Jass::Player(5), 'h088', -6499.7, 6851.1, 180.701);
-    Jass::CreateUnit(Jass::Player(6), 'h08F', -6448.5, 6789.1, 146.110);
-    Jass::CreateUnit(Jass::Player(7), 'h088', -6519.2, 6854.1, 293.624);
     Jass::CreateUnit(Jass::Player(15), 'n078', -6483.3, 5246.0, 216.463);
-    Jass::CreateUnit(Jass::Player(3), 'h088', -6535.9, 6862.8, 318.274);
     Jass::CreateUnit(Jass::Player(15), 'h087', -6657.4, 4404.0, 155.630);
     Jass::CreateUnit(Jass::Player(15), 'n079', -7035.6, 4930.1, 270.000);
     Jass::CreateUnit(Jass::Player(15), 'h08B', -7168.0, 4864.0, 270.000);
-    Jass::CreateUnit(Jass::Player(15), 'h035', -1436.3, 1746.6, 300.430);
     Jass::CreateUnit(Jass::Player(15), 'n075', -7025.0, 6261.8, 270.000);
-    Jass::CreateUnit(Jass::Player(15), 'h01O', 10336.0, 2080.0, 270.000);
-    Jass::CreateUnit(Jass::Player(7), 'h08F', -6508.4, 6758.9, 301.550);
-    Jass::CreateUnit(Jass::Player(8), 'h08F', -6577.7, 6766.5, 301.730);
-    Jass::CreateUnit(Jass::Player(15), 'h01O', 14432.0, 4256.0, 270.000);
-    Jass::CreateUnit(Jass::Player(15), 'h01O', 11360.0, -864.0, 270.000);
-    Jass::CreateUnit(Jass::Player(0), 'h08C', -6892.8, 5274.1, 25.511);
-    Jass::CreateUnit(Jass::Player(9), 'h088', -6522.0, 6857.0, 217.781);
-    Jass::CreateUnit(Jass::Player(0), 'h08C', -6329.2, 6492.6, 295.816);
-    Jass::CreateUnit(Jass::Player(0), 'h08C', -6891.8, 5958.0, 270.272);
-    Jass::CreateItem('IIII', -1482.3, 1472.1);
-    Jass::CreateItem('IIll', -1483.9, 2252.0);
-    Jass::CreateUnit(Jass::Player(15), 'h036', -1457.0, 2669.3, 136.092);
-    Jass::CreateUnit(Jass::Player(15), 'h01O', -4064.0, -2592.0, 270.000);
-    Jass::CreateUnit(Jass::Player(15), 'h01O', 6560.0, -5344.0, 270.000);
-    Jass::CreateUnit(Jass::Player(15), 'h01O', 1504.0, -5664.0, 270.000);
-    Jass::CreateUnit(Jass::Player(3), 'h08F', -6483.2, 6951.0, 286.280);
+    g_VK[2] = Jass::CreateUnit(Jass::Player(15), 'h01O', 10336.0, 2080.0, 270.000);
+    g_VK[3] = Jass::CreateUnit(Jass::Player(15), 'h01O', 14432.0, 4256.0, 270.000);
+    g_VK[4] = Jass::CreateUnit(Jass::Player(15), 'h01O', 11360.0, -864.0, 270.000);
+
+    
+    g_HeroTaker2[0] = Jass::CreateUnit(Jass::Player(0), 'h08F', -6629.3, 6885.0,  92.870);
+    g_HeroTaker2[1] = Jass::CreateUnit(Jass::Player(1), 'h08F', -6595.7, 6935.1, 358.040);
+    g_HeroTaker2[2] = Jass::CreateUnit(Jass::Player(2), 'h08F', -6543.0, 6961.7,   4.780);
+    g_HeroTaker2[3] = Jass::CreateUnit(Jass::Player(3), 'h08F', -6483.2, 6951.0, 286.280);
+    g_HeroTaker2[4] = Jass::CreateUnit(Jass::Player(4), 'h08F', -6437.5, 6907.1, 145.840);
+    g_HeroTaker2[5] = Jass::CreateUnit(Jass::Player(5), 'h08F', -6425.7, 6840.7, 190.110);
+    g_HeroTaker2[6] = Jass::CreateUnit(Jass::Player(6), 'h08F', -6448.5, 6789.1, 146.110);
+    g_HeroTaker2[7] = Jass::CreateUnit(Jass::Player(7), 'h08F', -6508.4, 6758.9, 301.550);
+    g_HeroTaker2[8] = Jass::CreateUnit(Jass::Player(8), 'h08F', -6577.7, 6766.5, 301.730);
+    g_HeroTaker2[9] = Jass::CreateUnit(Jass::Player(9), 'h08F', -6628.4, 6815.7,  50.340);
+
+    g_HeroTaker[0] = Jass::CreateUnit(Jass::Player(0), 'h088', -6529.1, 6851.9, 119.661);
+    g_HeroTaker[1] = Jass::CreateUnit(Jass::Player(1), 'h088', -6505.9, 6824.7, 123.129);
+    g_HeroTaker[2] = Jass::CreateUnit(Jass::Player(2), 'h088', -6558.2, 6865.8, 327.025);
+    g_HeroTaker[3] = Jass::CreateUnit(Jass::Player(3), 'h088', -6535.9, 6862.8, 318.274);
+    g_HeroTaker[4] = Jass::CreateUnit(Jass::Player(4), 'h088', -6544.3, 6862.9,  43.832);
+    g_HeroTaker[5] = Jass::CreateUnit(Jass::Player(5), 'h088', -6499.7, 6851.1, 180.701);
+    g_HeroTaker[6] = Jass::CreateUnit(Jass::Player(6), 'h088', -6537.8, 6856.2,  66.734);
+    g_HeroTaker[7] = Jass::CreateUnit(Jass::Player(7), 'h088', -6519.2, 6854.1, 293.624);
+    g_HeroTaker[8] = Jass::CreateUnit(Jass::Player(8), 'h088', -6531.7, 6842.1, 330.790);
+    g_HeroTaker[9] = Jass::CreateUnit(Jass::Player(9), 'h088', -6522.0, 6857.0, 217.781);
+
+    g_VisionGiver[0] = Jass::CreateUnit(Jass::Player(0), 'h08C', -6892.8, 5274.1,  25.511);
+    g_VisionGiver[1] = Jass::CreateUnit(Jass::Player(0), 'h08C', -6329.2, 6492.6, 295.816);
+    g_VisionGiver[2] = Jass::CreateUnit(Jass::Player(0), 'h08C', -6891.8, 5958.0, 270.272);
+    g_VisionGiver[3] = Jass::CreateUnit(Jass::Player(0), 'h08C', -6889.3, 4479.2,  98.957);
+    g_VisionGiver[4] = Jass::CreateUnit(Jass::Player(0), 'h08C', -6937.6, 6887.9, 295.816);
+
+    Jass::SetUnitInvulnerable(Jass::CreateUnit(Jass::Player(15), 'IIII', -1482.3, 1472.1, 0.000), true);
+    Jass::SetUnitInvulnerable(Jass::CreateUnit(Jass::Player(15), 'IIll', -1483.9, 2252.0, 0.000), true);
+    Jass::SetUnitInvulnerable(Jass::CreateUnit(Jass::Player(15), 'h036', -1457.0, 2669.3, 136.092), true);
+    Jass::SetUnitInvulnerable(Jass::CreateUnit(Jass::Player(15), 'h035', -1436.3, 1746.6, 300.430), true);
+    Jass::SetUnitInvulnerable(Jass::CreateUnit(Jass::Player(15), 'h03C', -1288.0, 1453.9, 78.104), true);
+    
+    g_VK[5] = Jass::CreateUnit(Jass::Player(15), 'h01O', -4064.0, -2592.0, 270.000);
+    g_VK[6] = Jass::CreateUnit(Jass::Player(15), 'h01O', 6560.0, -5344.0, 270.000);
+    g_VK[7] = Jass::CreateUnit(Jass::Player(15), 'h01O', 1504.0, -5664.0, 270.000);
     Jass::CreateUnit(Jass::Player(15), 'n073', -7146.4, 5451.7, 215.174);
-    Jass::CreateUnit(Jass::Player(8), 'h088', -6531.7, 6842.1, 330.790);
     Jass::CreateUnit(Jass::Player(15), 'n074', -7127.2, 6052.3, 229.412);
-    Jass::CreateUnit(Jass::Player(15), 'h01O', -5024.0, 6752.0, 270.000);
-    Jass::CreateUnit(Jass::Player(0), 'h08C', -6937.6, 6887.9, 295.816);
-    Jass::CreateUnit(Jass::Player(2), 'h088', -6558.2, 6865.8, 327.025);
+    g_VK[8] = Jass::CreateUnit(Jass::Player(15), 'h01O', -5024.0, 6752.0, 270.000);
     Jass::CreateUnit(Jass::Player(15), 'h00F', -6584.4, 5198.1, 336.963);
     Jass::CreateUnit(Jass::Player(15), 'n076', -7077.3, 5803.3, 270.000);
-    Jass::CreateUnit(Jass::Player(5), 'h08F', -6425.7, 6840.7, 190.110);
-    Jass::CreateUnit(Jass::Player(2), 'h08F', -6543.0, 6961.7, 4.780);
-    Jass::CreateUnit(Jass::Player(4), 'h088', -6544.3, 6862.9, 43.832);
     Jass::CreateUnit(Jass::Player(15), 'n077', -7070.2, 5336.1, 270.000);
     Jass::CreateUnit(Jass::Player(15), 'h00X', -358.5, 223.2, 222.380);
-    Jass::CreateUnit(Jass::Player(1), 'h08F', -6595.7, 6935.1, 358.040);
-    Jass::CreateUnit(Jass::Player(0), 'h08C', -6889.3, 4479.2, 98.957);
-    Jass::CreateUnit(Jass::Player(4), 'h08F', -6437.5, 6907.1, 145.840);
+
+
+    
+    MainPart();
 }
 
