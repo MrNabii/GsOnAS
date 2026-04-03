@@ -86,6 +86,7 @@ void GameStart() {
     InitItemTemplates();
     InitItemTriggers();
     InitSpawnTrigger();
+    InitDamageSystem();
     if(TestDebugMode) InitCheats();
     Jass::CreateItem('I02I', 0.f, 0.f);
     Jass::ConsolePrint("GameStartCompleted");

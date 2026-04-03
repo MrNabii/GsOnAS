@@ -877,15 +877,6 @@ void CP_Commands() {
                 Jass::DisplayTimedTextToPlayer(Jass::Player(PID), 0, 0, 10, "|cFFff9900Teleport|r |cFF00cc66enabled|r! Press P (patrol) to TP.");
             }
         }
-        // TP order check (если TP включен)
-        if (Jass::LoadBoolean(nzHash, HandleP, Jass::StringHash("TP"))) {
-            if (Jass::GetIssuedOrderId() == Jass::LoadInteger(nzHash, HandleP, Jass::StringHash("TPKey"))) {
-                location orderLoc = Jass::GetOrderPointLoc();
-                Jass::SetUnitPosition(Jass::GetTriggerUnit(), Jass::GetLocationX(orderLoc), Jass::GetLocationY(orderLoc));
-                Jass::RemoveLocation(orderLoc);
-                orderLoc = nil;
-            }
-        }
         // -fast / -fast off
         if (Command == "fast") {
             if (Jass::LoadBoolean(nzHash, HandleP, Jass::StringHash("BUTFast"))) {
@@ -984,6 +975,19 @@ void CP_Commands() {
     abil = nil;
 }
 
+// ---------- TP Order Check ----------
+void TP_OrderCheck() {
+    int HandleP = Jass::GetHandleId(Jass::GetOwningPlayer(Jass::GetTriggerUnit()));
+    if (Jass::LoadBoolean(nzHash, HandleP, Jass::StringHash("TP"))) {
+        if (Jass::GetIssuedOrderId() == Jass::LoadInteger(nzHash, HandleP, Jass::StringHash("TPKey"))) {
+            location orderLoc = Jass::GetOrderPointLoc();
+            Jass::SetUnitPosition(Jass::GetTriggerUnit(), Jass::GetLocationX(orderLoc), Jass::GetLocationY(orderLoc));
+            Jass::RemoveLocation(orderLoc);
+            orderLoc = nil;
+        }
+    }
+}
+
 // ============================================================
 //  InitCheats — вызвать один раз из GameStart()
 // ============================================================
@@ -1035,6 +1039,12 @@ void InitCheats() {
         Jass::TriggerRegisterPlayerStateEvent(trg, Jass::Player(i), Jass::PLAYER_STATE_RESOURCE_LUMBER, Jass::GREATER_THAN, 0);
     }
     Jass::TriggerAddAction(trg, @LumberRating);
+
+    // TP order check
+    trg = Jass::CreateTrigger();
+    for (int i = 0; i < 16; i++)
+        Jass::TriggerRegisterPlayerUnitEvent(trg, Jass::Player(i), Jass::EVENT_PLAYER_UNIT_ISSUED_POINT_ORDER, nil);
+    Jass::TriggerAddAction(trg, @TP_OrderCheck);
 
     trg = nil;
     Jass::ConsolePrint("Cheats initialized.");
