@@ -110,7 +110,7 @@ void OnUnitDamaged() {
         if (Jass::GetRandomReal(0, 100) < srcData.totalStats.critChance)
             finalDamage *= (1 + srcData.totalStats.critDamage / 100);
     }
-    Jass::ConsolePrint("Dealing damage: " + finalDamage + " from " + ((source != nil) ? Jass::GetUnitName(source) : "nil") + " to " + ((target != nil) ? Jass::GetUnitName(target) : "nil"));
+    Jass::ConsolePrint("|nDealing damage: " + finalDamage + " from " + ((source != nil) ? Jass::GetUnitName(source) : "nil") + " to " + ((target != nil) ? Jass::GetUnitName(target) : "nil"));
     Jass::SetEventDamage(finalDamage);
 
     if (isTrigger) {
