@@ -450,6 +450,38 @@ void CP_Commands() {
                         Jass::UnitStripHeroLevel(LoadUnit("nzUnitSys"), Jass::GetHeroLevel(LoadUnit("nzUnitSys")) - Value);
                 }
             }
+
+            if (Command == "F1") {
+                framehandle simple_btn;
+                float width = .012/0.8;
+                float height = .012/0.6;
+                float x_offset = .001/0.8;
+                float y_offset = .001/0.6;
+                float x_margin = width * .01;
+                float y_margin = height * .01;
+                int MAX_COLUMNS = 12, MAX_ROWS = 2;
+                float x = 0, y = 0;
+
+                for (int i = 0; i <= MAX_COLUMNS * MAX_ROWS - 1; i++) {
+                    simple_btn = Jass::GetFrameByName("BuffSystem_BuffPlaceHolder", i);
+                    Jass::ClearFrameAllPoints(simple_btn);
+                    Jass::SetFrameSize(simple_btn, width, height);
+                    x = Value*0.001 + x_offset + (Jass::MathIntegerModulo(i, MAX_COLUMNS) * width) + (Jass::MathIntegerModulo(i, MAX_COLUMNS) * x_margin);
+                    y = Value2*0.001 + y_offset + (Jass::MathRealFloor(i / MAX_COLUMNS) * height) + (Jass::MathRealFloor(i / MAX_COLUMNS) * y_margin);
+                    Jass::SetFrameAbsolutePoint(simple_btn, Jass::FRAMEPOINT_TOPLEFT, x, y);
+                    Jass::SetFramePriority(simple_btn, 5);
+                    Jass::SetFrameTexture(simple_btn, "ReplaceableTextures\\CommandButtons\\BTNCancel.blp", 0, false);
+                    //Jass::SetFrameTextureEx(simple_btn, 0, "UI\\Widgets\\EscMenu\\Orc\\orc-options-menu-background", false, "UI\\Widgets\\EscMenu\\Orc\\orc-options-menu-border", Jass::BORDER_FLAG_ALL);
+                    Jass::ShowFrame(simple_btn, true);
+                    Jass::ConsolePrint("\nCreated Buff Placeholder " + Jass::I2S(i) + " at (" + Jass::R2S(x) + ", " + Jass::R2S(y) + ")");
+                    Jass::ConsolePrint("\nTexture: " + Jass::GetFrameTexture(simple_btn, 0));
+                }
+            }
+            if (Command == "F2") {
+                TestBuffSystem_AddBuff(LoadUnit("nzUnitSys"));
+                TestBuffSystem_Stacks(LoadUnit("nzUnitSys"));
+                TestBuffSystem_Aura(LoadUnit("nzUnitSys"));
+            }
             // -str <N>
             if (Command == "str") {
                 Jass::SetHeroStr(LoadUnit("nzUnitSys"), Value, true);

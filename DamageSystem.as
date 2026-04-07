@@ -118,7 +118,11 @@ void OnUnitDamaged() {
     } else if (isAttack) {
         for (uint i = 0; i < OnHitCallbacks.length(); i++)
             OnHitCallbacks[i](realSource, target, finalDamage);
+        // Hero skill on-attack callbacks
+        HFireOnAttack(realSource, target);
     }
+    // Hero skill on-damage callbacks (при любом входящем уроне)
+    HFireOnDamage(realSource, target);
 
     @cb = null;
     realSource = nil;

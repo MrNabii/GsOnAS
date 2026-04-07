@@ -1,10 +1,12 @@
 rect mapInitialPlayableArea;
-
+hashtable UnitHandleHT = Jass::InitHashtable();  // хранит unit handle по handleId
 #include "OnSpawnAction.as"
 #include "DamageSystem.as"
 #include "Cheats.as"
 #include "InGameTexts.as"
-
+#include "AbilitySystem.as"
+#include "CraftingSys.as"
+#include "CraftingSystemFrame.as"
 array<int> MapVersion(100);
 array<unit> g_Gliba(10);
 bool TestDebugMode = true;
@@ -639,7 +641,6 @@ void GameStart() {
     
     Jass::SetTimeOfDayScale( 0.00 );
     Jass::SetFloatGameState(Jass::GAME_STATE_TIME_OF_DAY, 0.00);
-
     Jass::SuspendTimeOfDay(true);
     Jass::CameraSetSmoothingFactor(1.);
 
@@ -705,8 +706,13 @@ void GameStart() {
     InitItemDescriptions();
     InitItemTriggers();
     InitSpawnTrigger();
+    InitAbilityCastSystem();
     InitDamageSystem();
+    InitBuffSystem();
     if(TestDebugMode) InitCheats();
+    InitCraftingSystem();
+    InitCraftingSystemFrame();
+    OpenCraftBrowser(0);
     Jass::ConsolePrint("GameStartCompleted");
 }
 
