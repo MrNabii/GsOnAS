@@ -1,3 +1,5 @@
+//import UnitStats.as
+
 // ============================================================
 //  DamageSystem.as — Система нанесения и обработки урона
 // ============================================================
@@ -81,7 +83,7 @@ float CalcDamage(UnitData@ src, UnitData@ tgt, float raw, int dmgType) {
 // ---------- Обработчик EVENT_PLAYER_UNIT_DAMAGED ----------
 // Срабатывает ПОСЛЕ армора WC3. GetEventDamage() = урон после армора.
 void OnUnitDamaged() {
-    unit target   = Jass::BlzGetEventDamageTarget();
+    unit target   = Jass::GetEventDamageTarget();
     unit source   = Jass::GetEventDamageSource();
     float rawDmg  = Jass::GetEventDamage();
 
@@ -93,6 +95,7 @@ void OnUnitDamaged() {
 
     // --- Определяем источник и тип ---
     bool isTrigger        = gDmg_IsTrigger;
+    bool isDummy;
     unit realSource       = isTrigger ? gDmg_RealSource : source;
     float amount          = isTrigger ? gDmg_Amount     : rawDmg;
     DamageCallbackFn@ cb  = gDmg_Callback;
@@ -103,15 +106,37 @@ void OnUnitDamaged() {
     UnitData@ srcData = GetUnitData(realSource);
     UnitData@ tgtData = GetUnitData(target);
 
-    float finalDamage = CalcDamage(srcData, tgtData, amount, dmgType);
+    isDummy = srcData.IsDummy;
+    DamageCallbackFn@ DummyCb = srcData.dummyDamageCallback;
+    float DummyDamage = srcData.dummyDamage; 
+    damagetype dummyDmgType = srcData.dmgType;
+    float finalDamage;
 
-    // Крит — только при обычной атаке (isAttack && !триггерный)
-    if (isAttack && !isTrigger && srcData !is null && srcData.totalStats.critChance > 0) {
-        if (Jass::GetRandomReal(0, 100) < srcData.totalStats.critChance)
-            finalDamage *= (1 + srcData.totalStats.critDamage / 100);
+    if (isDummy)
+        finalDamage = CalcDamage(srcData, tgtData, DummyDamage, dmgType);
+    else
+        finalDamage = CalcDamage(srcData, tgtData, amount, dummyDmgType);
+
+    if (!isDummy) {
+        // Крит — только при обычной атаке (isAttack && !триггерный)
+        if (isAttack && !isTrigger && srcData !is null && srcData.totalStats.critChance > 0) {
+            if (Jass::GetRandomReal(0, 100) < srcData.totalStats.critChance)
+                finalDamage *= (1 + srcData.totalStats.critDamage / 100);
+        }
+        Jass::SetEventDamage(finalDamage);
+    } else {
+        // Даммик вызывает коллбек, который должен вернуть finalDamage через gDmg_Amount
+        if (DummyCb !is null) DummyCb(realSource, target, amount);
+        finalDamage = DummyDamage;
+        Jass::SetEventDamageType(dummyDmgType);
+        Jass::SetEventDamage(finalDamage);
     }
-    Jass::ConsolePrint("|nDealing damage: " + finalDamage + " from " + ((source != nil) ? Jass::GetUnitName(source) : "nil") + " to " + ((target != nil) ? Jass::GetUnitName(target) : "nil"));
-    Jass::SetEventDamage(finalDamage);
+    Jass::ConsolePrint("\nDealing damage: " + finalDamage + " from " + ((source != nil) ? Jass::GetUnitName(source) : "nil") + " to " + ((target != nil) ? Jass::GetUnitName(target) : "nil"));
+
+
+
+
+
 
     if (isTrigger) {
         if (cb !is null) cb(realSource, target, finalDamage);

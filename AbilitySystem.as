@@ -1,3 +1,14 @@
+
+//import Heroes\\HeroHelpers.as
+//import Heroes\\HeroPiro.as
+//import Heroes\\HeroStalker.as
+//import Heroes\\HeroSniper.as
+//import Heroes\\HeroRoket.as
+//import Heroes\\HeroPodr.as
+//import Heroes\\HeroMedic.as
+//import Heroes\\HeroPulik.as
+//import Heroes\\HeroEngineer.as
+
 #include "Heroes\\HeroHelpers.as"
 #include "Heroes\\HeroPiro.as"
 #include "Heroes\\HeroStalker.as"

@@ -1,3 +1,5 @@
+// ==================== W2 (A0KS) — Привязка маячка ====================
+
 // ============================================================
 //  HeroEngineer.as — Инженер (Engineer) — герой N000/N100
 // ============================================================
@@ -17,6 +19,63 @@ int   Q_StackN            = 5;        // стаков для крита (3 ур.
 float Q_Crit              = 2.0;      // множитель крита (3 ур.)
 int   Q_DummyId           = 'e00G';   // ID дамми-бомбы
 int  Q_AbilityId          = 'A0KQ';   // ID способности для стаков
+
+// ==================== Q (A0KQ) — Ракетный Шквал ====================
+
+void Q_Cast(unit u, int abilId, int abilvl, unit target, float targX, float targY, ability abil) {
+    float x = Jass::GetUnitX(u);
+    float y = Jass::GetUnitY(u);
+
+    int maxRockets = 4;
+    float critMul = 1.0;
+
+    // 2 ур.: шанс удвоения
+    if (abilvl >= 2 && Jass::GetRandomInt(0, 100) <= int(Q_Chance)) {
+        maxRockets = 8;
+        HGiveMana(u, float(Q_MPRes));
+    }
+
+    // 3 ур.: стаки → крит
+    if (abilvl >= 3) {
+        int stacks = HGetAbilityCharges(u, 'A0KQ') + 1;
+        if (stacks > Q_StackN) {
+            critMul = Q_Crit;
+            HSetAbilityCharges(u, 'A0KQ', 0);
+            // Уничтожить сохранённый таймер
+        } else {
+            HSetAbilityCharges(u, 'A0KQ', stacks);
+            // Создать/обновить таймер очистки стаков
+            timer t = Jass::LoadTimerHandle(SkillHT, Jass::GetHandleId(u), 'A0KQ');
+            if (t == nil) {t = Jass::CreateTimer(); Jass::SaveTimerHandle(SkillHT, Jass::GetHandleId(u), 'A0KQ', t);}
+            Jass::SaveUnitHandle(SkillHT, Jass::GetHandleId(t), 0, u);
+            Jass::TimerStart(t, 2.0, false, function() {
+                timer t = Jass::GetExpiredTimer();
+                unit u = Jass::LoadUnitHandle(SkillHT, Jass::GetHandleId(t), 0);
+                HSetAbilityCharges(u, 'A0KQ', 0);
+                Jass::FlushChildHashtable(SkillHT, Jass::GetHandleId(t));
+                Jass::DestroyTimer(t);
+            });
+        }
+    }
+
+    // Создать ракеты
+    for (int i = 0; i < maxRockets; i++) {
+        unit rocket = Jass::CreateUnit(Jass::GetOwningPlayer(u), 'e003', x, y, 0.0);
+        Jass::UnitApplyTimedLife(rocket, 'BTLF', 2.0);
+        RegisterUnit(rocket);
+        UnitData@ ud = GetUnitData(rocket);
+        if (ud !is null) {
+            ud.IsDummy = true;
+            ud.dummyDamage = Jass::GetHeroInt(u, true) * Q_int * critMul;
+            ud.dmgType = Jass::DAMAGE_TYPE_MAGIC;
+        }
+        float dist = Jass::GetRandomReal(0.0, 100.0);
+        float angle = Jass::GetRandomReal(0.0, 360.0);
+        float rx = targX + dist * Jass::MathCosDeg(angle);
+        float ry = targY + dist * Jass::MathSinDeg(angle);
+        IssuePointOrderEx1(rocket, "attack", rx, ry, Jass::Player(11), 1.0, 1.0); 
+    }
+}
 
 
 // ==================== Описания скиллов (AS) ====================
@@ -116,84 +175,6 @@ float WQ_dr               = 0.09;     // дебафф DR при взрыве
 float WW_MS1              = 0.3;      // бонус MS (1-2 ур.)
 float WW_MS2              = 0.6;      // бонус MS (3 ур.)
 
-// --- E (A0M8) Рудокоп ---
-float E_ChanceStart       = 4.0;      // шанс
-int   E_ChanceLuck        = 10;       // скейлинг от удачи
-float E_CapAS             = 0.2;      // бонус CapAS
-float E_LessDmgGliba      = 0.2;     // снижение урона
-float E_Stun              = 0.2;      // стан при атаке
-float E_dr1               = 0.1;      // бонус DR (2 ур.)
-float E_dr2               = 0.15;     // бонус DR (3 ур.)
-float E_int               = 1.35;     // множитель INT для on-attack урона (2 ур.)
-
-// --- R (A05N) Мобилизация ---
-int   R_agr_Duration      = 3;        // длительность (1 ур.)
-int   R_agr_Duration2     = 6;        // длительность (2 ур.)
-int   R_agr_Range         = 500;      // радиус
-int   R_Stack             = 10;       // стаков ярости (2 ур.)
-int   R_Stack2            = 20;       // стаков ярости (3 ур.)
-float R_int               = 7.0;      // множитель INT
-float R_Stun              = 0.6;      // стан
-
-// --- T (A01F) Реактор ---
-float T_AD                = 0.65;     // бонус AD%
-float T_AuraDr            = 0.15;     // DR аура
-float T_AuraAllStatsStart = 0.03;     // бонус всех статов
-int   T_AuraAllStatsThen  = 750;      // скейлинг от суммы статов
-float T_AuraReg           = 0.75;     // бонус HP regen
-float T_Duration          = 15.0;     // длительность бонуса T (3 ур.)
-
-// ==================== Q (A0KQ) — Ракетный Шквал ====================
-
-void Q_StackClear() {
-    timer t = Jass::GetExpiredTimer();
-    unit u = Jass::LoadUnitHandle(SkillHT, Jass::GetHandleId(t), 0);
-    HSetAbilityCharges(u, 'A0KQ', 0);
-    Jass::FlushChildHashtable(SkillHT, Jass::GetHandleId(t));
-    Jass::DestroyTimer(t);
-}
-
-void Q_Cast(unit u, int abilId, int abilvl, unit target, float targX, float targY, ability abil) {
-    float x = Jass::GetUnitX(u);
-    float y = Jass::GetUnitY(u);
-
-    int maxRockets = 4;
-    float critMul = 1.0;
-
-    // 2 ур.: шанс удвоения
-    if (abilvl >= 2 && Jass::GetRandomInt(0, 100) <= int(Q_Chance)) {
-        maxRockets = 8;
-        HGiveMana(u, float(Q_MPRes));
-    }
-
-    // 3 ур.: стаки → крит
-    if (abilvl >= 3) {
-        int stacks = HGetAbilityCharges(u, 'A0KQ') + 1;
-        if (stacks > Q_StackN) {
-            critMul = Q_Crit;
-            HSetAbilityCharges(u, 'A0KQ', 0);
-            // Уничтожить сохранённый таймер
-        } else {
-            HSetAbilityCharges(u, 'A0KQ', stacks);
-            // Создать/обновить таймер очистки стаков
-            timer t = Jass::CreateTimer();
-            Jass::SaveUnitHandle(SkillHT, Jass::GetHandleId(t), 0, u);
-            Jass::TimerStart(t, 2.0, false, @Q_StackClear);
-        }
-    }
-
-    // Создать ракеты
-    for (int i = 0; i < maxRockets; i++) {
-        unit rocket = Jass::CreateUnit(Jass::GetOwningPlayer(u), 'e003', x, y, 0.0);
-        Jass::UnitApplyTimedLife(rocket, 'BTLF', 2.0);
-        float dist = Jass::GetRandomReal(0.0, 100.0);
-        float angle = Jass::GetRandomReal(0.0, 360.0);
-        float rx = targX + dist * Jass::MathCosDeg(angle);
-        float ry = targY + dist * Jass::MathSinDeg(angle);
-        IssuePointOrderEx1(rocket, "move", rx, ry, Jass::Player(11), 1.0, 1.0); 
-    }
-}
-
 // ==================== W (A0SB) — Маячки ====================
 
 void W_MayakTick() {
@@ -267,10 +248,44 @@ void W_Cast(unit u, int abilId, int abilvl, unit target, float targX, float targ
     Jass::SaveInteger(SkillHT, th, 5, 0); // angle
 
     // Отключить кнопку W до окончания
-    Jass::SetPlayerAbilityAvailable(Jass::GetOwningPlayer(u), 'A0SB', false);
+    Jass::DisableAbility(abil, true, true);
+    //Jass::SetPlayerAbilityAvailable(Jass::GetOwningPlayer(u), 'A0SB', false);
 
-    Jass::TimerStart(t, 0.1, false, @W_MayakTick);
+    Jass::TimerStart(t, 0.02, false, @W_MayakTick);
 }
+
+
+void W2_Cast(unit u, int abilId, int abilvl, unit target, float targX, float targY, ability abil) {
+    if(Jass::IsUnitHero())
+}
+
+// --- E (A0M8) Рудокоп ---
+float E_ChanceStart       = 4.0;      // шанс
+int   E_ChanceLuck        = 10;       // скейлинг от удачи
+float E_CapAS             = 0.2;      // бонус CapAS
+float E_LessDmgGliba      = 0.2;     // снижение урона
+float E_Stun              = 0.2;      // стан при атаке
+float E_dr1               = 0.1;      // бонус DR (2 ур.)
+float E_dr2               = 0.15;     // бонус DR (3 ур.)
+float E_int               = 1.35;     // множитель INT для on-attack урона (2 ур.)
+
+// --- R (A05N) Мобилизация ---
+int   R_agr_Duration      = 3;        // длительность (1 ур.)
+int   R_agr_Duration2     = 6;        // длительность (2 ур.)
+int   R_agr_Range         = 500;      // радиус
+int   R_Stack             = 10;       // стаков ярости (2 ур.)
+int   R_Stack2            = 20;       // стаков ярости (3 ур.)
+float R_int               = 7.0;      // множитель INT
+float R_Stun              = 0.6;      // стан
+
+// --- T (A01F) Реактор ---
+float T_AD                = 0.65;     // бонус AD%
+float T_AuraDr            = 0.15;     // DR аура
+float T_AuraAllStatsStart = 0.03;     // бонус всех статов
+int   T_AuraAllStatsThen  = 750;      // скейлинг от суммы статов
+float T_AuraReg           = 0.75;     // бонус HP regen
+float T_Duration          = 15.0;     // длительность бонуса T (3 ур.)
+
 
 // ==================== E (A0M8) — Рудокоп ====================
 
@@ -450,6 +465,7 @@ void InitEngineerSkills() {
     RegisterAbilityCastHandler('A0M8', @E_Cast);
     RegisterAbilityCastHandler('A05N', @R_Cast);
     RegisterAbilityCastHandler('A01F', @T_Cast);
+    InitEngineerSkillTexts();
     Jass::ConsolePrint("Engineer skills initialized.");
 }
 

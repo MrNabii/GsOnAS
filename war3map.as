@@ -1,9 +1,11 @@
-
+//import-ujapi! common.j
+//import MainPart.as
 
 array<unit> g_VK(12);
 array<unit> g_VisionGiver(12);
 array<unit> g_HeroTaker(12);
 array<unit> g_HeroTaker2(12);
+
 
 #include "MainPart.as"
 

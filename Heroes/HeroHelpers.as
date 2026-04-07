@@ -337,8 +337,69 @@ void HRemoveBuff(unit u, int buffId) {
 // Хранение в SkillHT: key = handleId юнита, subkey = abilId
 // Второй набор зарядов: subkey = abilId + 1000000
 
+framehandle AddChargeForAbility2(framehandle simple_btn, int abilId) {
+    framehandle ChargeContent;
+    framehandle ChargesBox;
+    framehandle ChargesText;
+
+    // Аналог CreateFrame("GlueWText", ...)
+    ChargeContent = Jass::CreateFrame("GlueWText", simple_btn, 0, 1000000+abilId);
+    ChargesBox = Jass::GetFrameChild(ChargeContent, 0);
+    ChargesText = Jass::GetFrameChild(ChargeContent, 1);
+
+    //Jass::SetFrameText(ChargesText, Jass::I2S(charges)); // если нужно выставить число
+    Jass::SetFrameTexture(ChargesBox, "UI\\Widgets\\Console\\Human\\CommandButton\\human-button-lvls-overlay", 0, false);
+    Jass::SetFrameSize(ChargeContent, .016/0.8, .016/0.8);
+    Jass::SetFrameRelativePoint(ChargeContent, Jass::FRAMEPOINT_BOTTOMLEFT, simple_btn, Jass::FRAMEPOINT_BOTTOMLEFT, 0.0, 0.0);
+    Jass::ShowFrame(ChargeContent, false);
+    Jass::SetFrameText(ChargesText, "100");
+
+    //Jass::ConsolePrint("\nCharge frame created: " + Jass::GetFrameName(ChargeContent) + ", " + Jass::GetFrameName(ChargesBox) + ", " + Jass::GetFrameName(ChargesText));
+
+    // Нет необходимости занулять ChargesBox/ChargeContent в AS
+    return ChargesText;
+}
+
+framehandle AddChargeForAbility1(framehandle simple_btn, int abilId) {
+    framehandle ChargeContent;
+    framehandle ChargesBox;
+    framehandle ChargesText;
+
+    // Аналог CreateFrame("GlueWText", ...)
+    ChargeContent = Jass::CreateFrame("GlueWText", simple_btn, 0, abilId);
+    ChargesBox = Jass::GetFrameChild(ChargeContent, 0);
+    ChargesText = Jass::GetFrameChild(ChargeContent, 1);
+
+    //Jass::SetFrameText(ChargesText, Jass::I2S(charges)); // если нужно выставить число
+    Jass::SetFrameTexture(ChargesBox, "UI\\Widgets\\Console\\Human\\CommandButton\\human-button-lvls-overlay", 0, false);
+    Jass::SetFrameSize(ChargeContent, .016/0.8, .016/0.8);
+    Jass::SetFrameRelativePoint(ChargeContent, Jass::FRAMEPOINT_BOTTOMRIGHT, simple_btn, Jass::FRAMEPOINT_BOTTOMRIGHT, 0.0, 0.0);
+    Jass::ShowFrame(ChargeContent, false);
+    Jass::SetFrameText(ChargesText, "100");
+
+    //Jass::ConsolePrint("\nCharge frame created: " + Jass::GetFrameName(ChargeContent) + ", " + Jass::GetFrameName(ChargesBox) + ", " + Jass::GetFrameName(ChargesText));
+
+    // Нет необходимости занулять ChargesBox/ChargeContent в AS
+    return ChargesText;
+}
+
+int HGetAbilityX(int abilId) {
+    return Jass::GetAbilityBaseIntegerFieldById(abilId, Jass::ABILITY_IF_BUTTON_POSITION_NORMAL_X);
+}
+
+int HGetAbilityY(int abilId) {
+    return Jass::GetAbilityBaseIntegerFieldById(abilId, Jass::ABILITY_IF_BUTTON_POSITION_NORMAL_Y);
+}
+
 void HSetAbilityCharges(unit u, int abilId, int charges) {
     Jass::SaveInteger(SkillHT, Jass::GetHandleId(u), abilId, charges);
+    framehandle cf = Jass::GetFrameByName("GlueWText", abilId);
+    if (cf == nil) {
+        cf = AddChargeForAbility1(Jass::GetOriginFrame(Jass::ORIGIN_FRAME_COMMAND_BUTTON, HGetAbilityY(abilId)*4+HGetAbilityX(abilId) ), abilId);
+    }
+    framehandle cf_text = Jass::GetFrameChild(cf, 1);
+    Jass::SetFrameText(cf_text, Jass::I2S(charges));
+    Jass::ShowFrame(cf, charges > 0);
 }
 
 int HGetAbilityCharges(unit u, int abilId) {
@@ -347,6 +408,13 @@ int HGetAbilityCharges(unit u, int abilId) {
 
 void HSetAbility2Charges(unit u, int abilId, int charges) {
     Jass::SaveInteger(SkillHT, Jass::GetHandleId(u), abilId + 1000000, charges);
+    framehandle cf = Jass::GetFrameByName("GlueWText", abilId);
+    if (cf == nil) {
+        cf = AddChargeForAbility2(Jass::GetOriginFrame(Jass::ORIGIN_FRAME_COMMAND_BUTTON, HGetAbilityY(abilId)*4+HGetAbilityX(abilId) ), abilId);
+    }
+    framehandle cf_text = Jass::GetFrameChild(cf, 1);
+    Jass::SetFrameText(cf_text, Jass::I2S(charges));
+    Jass::ShowFrame(cf, charges > 0);
 }
 
 int HGetAbility2Charges(unit u, int abilId) {

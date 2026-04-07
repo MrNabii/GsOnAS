@@ -1,3 +1,5 @@
+//import BuffSystem.as
+
 // ============================================================
 //  UnitStats.as — Система статов юнита
 // ============================================================
@@ -86,7 +88,7 @@ class UnitStatsData {
         luck = 0;        luckPct = 0;
     }
 
-    void Add(const UnitStatsData &in o) {
+    void Add(UnitStatsData o) {
         strength       += o.strength;        strengthPct      += o.strengthPct;
         agility        += o.agility;         agilityPct       += o.agilityPct;
         intelligence   += o.intelligence;    intelligencePct  += o.intelligencePct;
@@ -174,7 +176,14 @@ class UnitData {
     array<ItemStats@> items;       // предметы
     array<Buff@>      buffs;       // активные баффы
     private timer     buffTimer;    // таймер для тика баффов
+    bool          IsDummy;  // флаг, указывающий, является ли юнит "пустышкой" (без статов, для триггеров и т.п.)
+    float        dummyDamage; // временное хранилище для урона от "пустышки", который должен быть обработан коллбеком
+    damagetype dmgType;  //Jass::DAMAGE_TYPE_NORMAL / DAMAGE_TYPE_MAGIC / DAMAGE_TYPE_UNIVERSAL и т.д.
+    DamageCallbackFn@ dummyDamageCallback; // коллбек для обработки урона от "пустышки"
 
+    void SetDamageCallback(DamageCallbackFn@ cb) {
+        @dummyDamageCallback = cb;
+    }
     // --- Предметы ---
     void AddItem(ItemStats@ itm, unit u) {
         if (itm is null) return;
@@ -406,7 +415,6 @@ class UnitData {
         UnitBaseTemplate@ baseTpl = GetBaseTemplate(typeId);
         int heroClass = (baseTpl !is null) ? baseTpl.heroClass : 0;
         dictionary stackCount; // подсчёт по itemTypeId
-        Jass::ConsolePrint("\n[Recalc] items=" + Jass::I2S(int(items.length())) + " heroLvl=" + Jass::I2S(heroLvl) + " heroClass=" + Jass::I2S(heroClass));
         for (uint i = 0; i < items.length(); i++) {
             if (items[i].slot < 0 || items[i].slot > 5) { Jass::ConsolePrint("[Recalc] skip slot=" + Jass::I2S(items[i].slot)); continue; }
             // Проверка уровня (lvl=1 — без ограничения)

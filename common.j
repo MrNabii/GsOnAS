@@ -1,3 +1,4 @@
+//v1.1.37.365
 //============================================================================
 // Native types. All native functions take extended handle types when
 // possible to help prevent passing bad values to native functions
@@ -7136,7 +7137,7 @@ native SetFrameAlphaEx									takes framehandle whichFrame, integer textureId, 
 native GetFrameAlpha									takes framehandle whichFrame returns integer
 native SetFrameAlpha									takes framehandle whichFrame, integer alpha returns nothing
 native GetFrameTexture									takes framehandle whichFrame, integer textureId returns string
-native SetFrameBackdropTexture							takes framehandle whichFrame, integer textureId, string backgroundTextureFile, boolean tileBackground, boolean blend, string borderTextureFile, integer borderFlags, boolean isControlBackdrop returns nothing
+native SetFrameBackdropTexture							takes framehandle whichFrame, integer textureId, string backgroundTextureFile, boolean allowTransparency, boolean blend, string borderTextureFile, integer borderFlags, boolean isControlBackdrop returns nothing
 native SetFrameTextureEx								takes framehandle whichFrame, integer textureId, string backgroundTextureFile, boolean blend, string borderTextureFile, integer borderFlags returns nothing
 native SetFrameTexture									takes framehandle whichFrame, string textureFile, integer textureId, boolean blend returns nothing
 native GetFrameBlendMode								takes framehandle whichFrame, integer textureId returns blendmode // 0 for CSimpleRegions.

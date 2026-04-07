@@ -1,3 +1,11 @@
+//import OnSpawnAction.as
+//import DamageSystem.as
+//import Cheats.as
+//import InGameTexts.as
+//import AbilitySystem.as
+//import CraftingSys.as
+//import CraftingSystemFrame.as
+
 rect mapInitialPlayableArea;
 hashtable UnitHandleHT = Jass::InitHashtable();  // хранит unit handle по handleId
 #include "OnSpawnAction.as"
