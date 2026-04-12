@@ -22,7 +22,7 @@ void Tainik_Death(unit diedunit, unit killer) {
 	float Luck = ud.totalStats.luck;
 	float x = Jass::GetUnitX(diedunit);
 	float y = Jass::GetUnitY(diedunit);
-	float random = GetRandomReal(0, 100);
+	float random = Jass::GetRandomReal(0, 100);
 	if(random < 50 * (1 + Luck / 30.0)) {
 		for(float chance = 100 + 10 * Luck, i = Jass::GetRandomReal(0, 100); i < chance; i = Jass::GetRandomReal(0, 100), chance -= 100) {
 			float chance1 = 60 - Luck;
@@ -72,7 +72,7 @@ void Tainik_Death(unit diedunit, unit killer) {
 				chance5 = 8  + Luck * 3;
 				overall = chance1 + chance2 + chance3 + chance4 + chance5;
 				roll = Jass::GetRandomReal(0, overall);
-				float OreType;
+				int OreType;
 				if(roll < chance1) {
 					Jass::CreateUnit( Jass::Player(Jass::PLAYER_NEUTRAL_PASSIVE), 'n02D', x, y, 0. );
 				} else if(roll < chance1 + chance2) {
