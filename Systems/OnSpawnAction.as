@@ -1,6 +1,20 @@
 //import UnitStats.as
 
 #include "UnitStats.as"
+
+
+
+funcdef void OnSpawnCallback(unit u);
+
+// Мап: abilityId → callback
+dictionary g_OnSpawnHandlers;
+
+// Регистрация обработчика для способности
+void RegisterOnSpawnHandler(int abilityId, OnSpawnCallback@ cb) {
+	if (cb is null) return;
+	g_OnSpawnHandlers["" + abilityId] = @cb;
+}
+
 array<unit> GoblinUnit;
 array<unit> BunkerUnit;
 group Goblinzz;
@@ -10,6 +24,14 @@ void OnUnitEnterMap() {
     unit u = Jass::GetTriggerUnit();
     int typeId = Jass::GetUnitTypeId(u);
     RegisterUnit(u);
+    string key = "" + typeId;
+
+    if (g_OnSpawnHandlers.exists(key)) {
+		OnSpawnCallback@ cb = cast<OnSpawnCallback@>(g_OnSpawnHandlers[key]);
+		if (cb !is null) {
+			cb(u);
+		}
+	}
 
     if(Jass::IsUnitHero(u) && Jass::GetPlayerId(Jass::GetOwningPlayer(u)) < 10) {
         GoblinUnit[Jass::GetPlayerId(Jass::GetOwningPlayer(u))] = u;
