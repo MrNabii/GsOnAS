@@ -54,9 +54,9 @@ bool WS_IsCommonWaveType(int wt) {
     return wt == 1 || wt == 11 || wt == 12 || wt == 112 || wt == 13 || wt == 113 || wt == 14;
 }
 
-void WS_OnWaveDeath(unit u) {
-    if (u == nil) return;
-    Jass::GroupRemoveUnit(WS_AliveWaveUnits, u);
+void WS_OnWaveDeath(unit diedunit, unit killer) {
+    if (diedunit == nil) return;
+    Jass::GroupRemoveUnit(WS_AliveWaveUnits, diedunit);
     udg_wave_count = Jass::GroupGetCount(WS_AliveWaveUnits);
 }
 
@@ -275,7 +275,7 @@ void WS_TrySpawnMiniBoss(int waveNum, int nextSpawnCount) {
     unit u = Jass::CreateUnit(Jass::Player(11), miniType, x, y, 270.0);
     RegisterUnit(u);
     UnitData@ ud = GetUnitData(u);
-    ud.isMiniBoss = true;
+    ud.isMinik = true;
     if (WS_WaveMinik == 2)
         ud.isMiniBoss2 = true;
 

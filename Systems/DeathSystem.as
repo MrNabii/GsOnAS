@@ -15,9 +15,11 @@ int GetWaveUnit_Actions() {
 
 void Tainik_Death(unit diedunit, unit killer) {
 	unit Gobllin = GoblinUnit[Jass::GetPlayerId(Jass::GetOwningPlayer(killer))];
+	if (Gobllin == nil) return;
 	UnitData@ ud = GetUnitData(Gobllin);
+	if (ud is null) return;
 	HeroGameData@ heroData = ud.heroGameData;
-	int Luck = ud.Luck;
+	float Luck = ud.totalStats.luck;
 	float x = Jass::GetUnitX(diedunit);
 	float y = Jass::GetUnitY(diedunit);
 	float random = GetRandomReal(0, 100);
@@ -91,13 +93,13 @@ void Tainik_Death(unit diedunit, unit killer) {
 					Jass::CreateItem( OreType, x, y );
 				}
 
-				chance1 = 120 - Luck * 2
-				chance2 = 25
-				chance3 = 10 + Luck / 5
-				chance4 = 4  + Luck / 10
-				chance5 = 2  + Luck / 10
-				overall = chance1 + chance2 + chance3 + chance4 + chance5
-				roll = Jass::GetRandomReal(0., overall)
+				chance1 = 120 - Luck * 2;
+				chance2 = 25;
+				chance3 = 10 + Luck / 5;
+				chance4 = 4  + Luck / 10;
+				chance5 = 2  + Luck / 10;
+				overall = chance1 + chance2 + chance3 + chance4 + chance5;
+				roll = Jass::GetRandomReal(0., overall);
 				if(roll < chance1) {
 					//Jass::CreateUnit( Jass::Player(Jass::PLAYER_NEUTRAL_PASSIVE), 'n02D', x, y, 0. );
 				} else if(roll < chance1 + chance2) {

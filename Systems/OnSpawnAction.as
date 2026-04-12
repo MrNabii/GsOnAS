@@ -38,12 +38,6 @@ void OnUnitEnterMap() {
         Jass::GroupAddUnit(Goblinzz, u);
     }
 
-    // Враги — добавить в группу мобов для портального pathfinding
-    int ownerId = Jass::GetPlayerId(Jass::GetOwningPlayer(u));
-    if (ownerId >= 10 && ownerId <= 11 && !Jass::IsUnitHero(u) && Jass::GetUnitMoveSpeed(u) > 0) {
-        PP_AddMob(u);
-    }
-
     for(int i = 0; i <= 5; i++) {
         UnitData@ ud = GetUnitData(u);
 

@@ -194,7 +194,7 @@ void OnUnitDamaged() {
             finalDamage *= 0.7; // 30% меньше урона, если есть хотя бы 1 заряд от R   
             HSetAbilityCharges(target, 'A05N', 0);
         }
-        if(srcData.IsMinik) {
+        if(srcData.isMinik) {
             finalDamage *= 0.7; // дополнительно 30% меньше урона для миников
         }
         if(TargetCurrentHp <= finalDamage) { // если удар должен убить юнита

@@ -466,10 +466,10 @@ void T_Start() {
     string desc = "";
     float AllStatsPrc = T_AuraAllStatsStart + float(Jass::GetHeroStr(u, true) + Jass::GetHeroAgi(u, true) + Jass::GetHeroInt(u, true)) / float(T_AuraAllStatsThen) / 100.0;
     auraStats.Reset();
-    auraStats.strPrc = AllStatsPrc;
-    auraStats.intPrc = AllStatsPrc;
-    auraStats.agiPrc = AllStatsPrc;
-    desc += ", увеличивает все характеристики на " + auraStats.strPrc * 100 + "% от суммы характеристик";
+    auraStats.strengthPct = AllStatsPrc;
+    auraStats.intelligencePct = AllStatsPrc;
+    auraStats.agilityPct = AllStatsPrc;
+    desc += ", увеличивает все характеристики на " + auraStats.strengthPct * 100 + "% от суммы характеристик";
     if(abilvl >= 2) {
         auraStats.resistAll = T_AuraDr;
         desc += ", уменьшает получаемый урон на " + (T_AuraDr * 100) + "%";
