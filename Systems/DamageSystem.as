@@ -41,7 +41,7 @@ float               gDmg_Amount    = 0;
 DamageCallbackFn@   gDmg_Callback  = null;
 
 // Даммики для триггерного урона — по одному на каждого игрока (rawcode настроить в OE)
-const int DAMAGE_DUMMY_ID = 'dumm';
+const int DAMAGE_DUMMY_ID = 'hdum';
 array<unit> DamageDummy(16);
 
 // Зарегистрированные on-hit пассивки
@@ -86,19 +86,35 @@ void OnUnitDamaged() {
     unit target   = Jass::GetEventDamageTarget();
     unit source   = Jass::GetEventDamageSource();
     float rawDmg  = Jass::GetEventDamage();
+    float TargetCurrentHp = Jass::GetUnitCurrentLife(target);
 
-    if (rawDmg <= 0) { target = nil; source = nil; return; }
+    // Для триггерного урона (через DamageDummy) rawDmg может прийти как 0,
+    // поэтому ранний выход делаем только для обычного (не-триггерного) урона.
+    bool isTrigger        = gDmg_IsTrigger;
+
+    if (rawDmg <= 0 && !isTrigger) { target = nil; source = nil; return; }
 
     // --- UjAPI: информация о событии ---
     bool isAttack         = Jass::GetEventIsAttack();
     damagetype evDamage   = Jass::GetEventDamageType();
 
     // --- Определяем источник и тип ---
-    bool isTrigger        = gDmg_IsTrigger;
-    bool isDummy;
     unit realSource       = isTrigger ? gDmg_RealSource : source;
     float amount          = isTrigger ? gDmg_Amount     : rawDmg;
     DamageCallbackFn@ cb  = gDmg_Callback;
+
+
+    UnitData@ DummyData = GetUnitData(realSource);
+    bool isDummy = (DummyData !is null) ? DummyData.IsDummy : false;
+    DamageCallbackFn@ DummyCb = (DummyData !is null) ? DummyData.dummyDamageCallback : null;
+    float DummyDamage = (DummyData !is null) ? DummyData.dummyDamage : 0; 
+    damagetype dummyDmgType = (DummyData !is null) ? DummyData.dmgType : evDamage;
+    float finalDamage;
+    bool CanOnHit = (DummyData !is null) ? DummyData.CanOnHit : false;
+
+    if (isDummy && DummyData.DummySource != nil && CanOnHit) {
+        realSource = DummyData.DummySource; // для коллбека "пустышки" источник — это её DummySource, который должен быть установлен перед атакой
+    }
 
     damagetype dtWC3 = isTrigger ? gDmg_Type : evDamage;
     int dmgType = WC3DamageTypeToLocal(dtWC3);
@@ -106,31 +122,109 @@ void OnUnitDamaged() {
     UnitData@ srcData = GetUnitData(realSource);
     UnitData@ tgtData = GetUnitData(target);
 
-    isDummy = srcData.IsDummy;
-    DamageCallbackFn@ DummyCb = srcData.dummyDamageCallback;
-    float DummyDamage = srcData.dummyDamage; 
-    damagetype dummyDmgType = srcData.dmgType;
-    float finalDamage;
-
-    if (isDummy)
-        finalDamage = CalcDamage(srcData, tgtData, DummyDamage, dmgType);
-    else
-        finalDamage = CalcDamage(srcData, tgtData, amount, dummyDmgType);
-
-    if (!isDummy) {
-        // Крит — только при обычной атаке (isAttack && !триггерный)
-        if (isAttack && !isTrigger && srcData !is null && srcData.totalStats.critChance > 0) {
-            if (Jass::GetRandomReal(0, 100) < srcData.totalStats.critChance)
-                finalDamage *= (1 + srcData.totalStats.critDamage / 100);
+    if (Jass::IsUnitInGroup(target, Ores)) {
+        finalDamage = 500;
+        bool isEngineer = false;
+        if(IsUnitEngineer(source)) {
+            finalDamage = 250;
+            isEngineer = true;
+            if(UnitHaveBuff(source, 'A0M8')){
+                finalDamage *= 0.8; // 20% меньше урона от руды, если есть бафф от E
+            }
         }
         Jass::SetEventDamage(finalDamage);
-    } else {
+
+        if (!isEngineer) return;
+        int Oretype = tgtData.OreType;
+        int ItemTypeId;
+        int ItemNumber = 1; 
+
+
+        if(Oretype == 1) {
+            ItemTypeId = 'I001';
+        } else if(Oretype == 2) {
+            ItemTypeId = 'I002';
+        } else if(Oretype == 3) {
+            ItemTypeId = 'I003';
+        } else {
+            ItemTypeId = 'I000';
+        }
+        for(int i = 0; i < ItemNumber; i++) {
+            Jass::CreateItem(ItemTypeId, Jass::GetUnitX(source), Jass::GetUnitY(source));
+        }
+        float randomChance = Jass::GetRandomReal(0, 100);
+        Jass::ConsolePrint("\nRandom Chance for Bonus Item: " + Jass::R2S(randomChance) + "% (Luck: " + Jass::R2S(srcData.totalStats.luck) + ")");
+        if(randomChance < Engineer::E_ChanceStart * (srcData.totalStats.luck/Engineer::E_ChanceLuck + 1)) {
+            int RandomItem = Jass::GetRandomInt(1, 6);
+            if(RandomItem == 1) {
+                ItemTypeId = 'I051';
+            } else if(RandomItem == 2) {
+                ItemTypeId = 'I050';
+            } else if(RandomItem == 3) {
+                ItemTypeId = 'I04Z';
+            } else if(RandomItem == 4) {
+                ItemTypeId = 'I04Y';
+            } else if(RandomItem == 5) {
+                ItemTypeId = 'I04X';
+            } else if(RandomItem == 6) {
+                ItemTypeId = 'I052';
+            }
+            for(int i = 0; i < ItemNumber; i++) {
+                Jass::CreateItem(ItemTypeId, Jass::GetUnitX(source), Jass::GetUnitY(source));
+            }
+        }
+        return;
+    }
+    
+    if (isDummy) {
         // Даммик вызывает коллбек, который должен вернуть finalDamage через gDmg_Amount
         if (DummyCb !is null) DummyCb(realSource, target, amount);
-        finalDamage = DummyDamage;
         Jass::SetEventDamageType(dummyDmgType);
-        Jass::SetEventDamage(finalDamage);
+        finalDamage = CalcDamage(srcData, tgtData, DummyDamage, dummyDmgType);
     }
+    else
+        finalDamage = CalcDamage(srcData, tgtData, amount, dmgType);
+    if (srcData !is null && srcData.totalStats.critChance > 0) {
+        if (Jass::GetRandomReal(0, 100) < srcData.totalStats.critChance)
+            finalDamage *= (1 + srcData.totalStats.critDamage / 100);
+    }   
+
+    if(Jass::GetUnitAbilityLevel(target, 'B092') > 0 && Jass::GetUnitAbilityLevel(target, 'A05N') >= 2) {
+        if(HGetAbilityCharges(target, 'A05N') > 0) {
+            finalDamage *= 0.7; // 30% меньше урона, если есть хотя бы 1 заряд от R   
+            HSetAbilityCharges(target, 'A05N', 0);
+        }
+        if(srcData.IsMinik) {
+            finalDamage *= 0.7; // дополнительно 30% меньше урона для миников
+        }
+        if(TargetCurrentHp <= finalDamage) { // если удар должен убить юнита
+            if(Jass::GetUnitAbilityLevel(target, 'A05N') >= 3 && Jass::GetAbilityRemainingCooldown(Jass::GetUnitAbility(target, 'A05N')) <= 0) {
+                finalDamage *= 0.7; 
+                Jass::StartAbilityCooldown(Jass::GetUnitAbility(target, 'A05N'), 120);
+            }
+            finalDamage = 0;
+            Jass::SetUnitCurrentLife(target, Jass::GetUnitMaxLife(target)); // оставляем 1 HP, чтобы юнит не умер
+        }
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    Jass::SetEventDamage(finalDamage);
     Jass::ConsolePrint("\nDealing damage: " + finalDamage + " from " + ((source != nil) ? Jass::GetUnitName(source) : "nil") + " to " + ((target != nil) ? Jass::GetUnitName(target) : "nil"));
 
 
@@ -140,7 +234,7 @@ void OnUnitDamaged() {
 
     if (isTrigger) {
         if (cb !is null) cb(realSource, target, finalDamage);
-    } else if (isAttack) {
+    } else if (isAttack || CanOnHit) {
         for (uint i = 0; i < OnHitCallbacks.length(); i++)
             OnHitCallbacks[i](realSource, target, finalDamage);
         // Hero skill on-attack callbacks
@@ -168,43 +262,54 @@ void OnUnitDamaged() {
 void DealDamage(unit source, unit target, float amount, damagetype dmgType, DamageCallbackFn@ cb = null) {
     if (target == nil || amount <= 0) return;
 
-    // Сохранить предыдущее состояние (для вложенных вызовов из callback)
-    bool prevTrigger                = gDmg_IsTrigger;
-    damagetype prevType             = gDmg_Type;
-    unit prevSource                 = gDmg_RealSource;
-    float prevAmount                = gDmg_Amount;
-    DamageCallbackFn@ prevCb        = gDmg_Callback;
+    timer t = Jass::CreateTimer();
+    int th = Jass::GetHandleId(t);
+    Jass::SaveUnitHandle(SkillHT, th, 0, source);
+    Jass::SaveUnitHandle(SkillHT, th, 1, target);
+    Jass::SaveReal(SkillHT, th, 0, amount);
+    Jass::SaveDamageTypeHandle(SkillHT, th, 2, dmgType);
+    Jass::TimerStart(t, 0.01, false, function() {
+        timer t = Jass::GetExpiredTimer();
+        int th = Jass::GetHandleId(t);
+        unit source = Jass::LoadUnitHandle(SkillHT, th, 0);
+        unit target = Jass::LoadUnitHandle(SkillHT, th, 1);
+        float amount = Jass::LoadReal(SkillHT, th, 0);
+        damagetype dmgType = Jass::LoadDamageTypeHandle(SkillHT, th, 2);
+        attacktype atcType = Jass::ATTACK_TYPE_CHAOS; // по умолчанию, можно переопределить в коллбеке
+        Jass::FlushChildHashtable(SkillHT, th);
+        Jass::DestroyTimer(t);
 
-    gDmg_IsTrigger  = true;
-    gDmg_Type       = dmgType;
-    gDmg_RealSource = source;
-    gDmg_Amount     = amount;
-    @gDmg_Callback  = @cb;
-
-    
-    // Даммик источника (по владельцу source, fallback = Player(15))
-    int pid = 15;
-    if (source != nil)
+        int pid = 15;
+        if (source != nil)
+        {
         pid = Jass::GetPlayerId(Jass::GetOwningPlayer(source));
+        atcType = Jass::GetUnitAttackTypeByIndex(source, 0);
+        }
+        
 
-    // attacktype берём из source (его первая атака, index 0)
-    attacktype srcAtk = Jass::ATTACK_TYPE_CHAOS;
-    if (source != nil)
-        srcAtk = Jass::GetUnitAttackTypeByIndex(source, 0);
+        // Установить глобальные флаги ДО UnitDamageTarget,
+        // чтобы OnUnitDamaged знал, что это триггерный урон от source
+        bool prevTrigger     = gDmg_IsTrigger;
+        damagetype prevType  = gDmg_Type;
+        unit prevSource      = gDmg_RealSource;
+        float prevAmount     = gDmg_Amount;
+        DamageCallbackFn@ prevCb = gDmg_Callback;
 
-    Jass::UnitDamageTarget(DamageDummy[pid], target, amount, true, false,
-        srcAtk, dmgType, Jass::WEAPON_TYPE_WHOKNOWS);
+        gDmg_IsTrigger  = true;
+        gDmg_Type       = dmgType;
+        gDmg_RealSource = source;
+        gDmg_Amount     = amount;
+        @gDmg_Callback  = null;
+        Jass::ConsolePrint("\nDealing trigger damage: " + amount + " from " + ((DamageDummy[pid] != nil) ? Jass::GetUnitName(DamageDummy[pid]) : "nil") + " to " + ((target != nil) ? Jass::GetUnitName(target) : "nil"));
+        Jass::UnitDamageTarget(DamageDummy[pid], target, amount, true, false,
+        atcType, dmgType, Jass::WEAPON_TYPE_WHOKNOWS);
 
-    // Восстановить контекст
-    gDmg_IsTrigger  = prevTrigger;
-    gDmg_Type       = prevType;
-    gDmg_RealSource = prevSource;
-    gDmg_Amount     = prevAmount;
-    @gDmg_Callback  = @prevCb;
-    srcAtk = nil;
-    prevType = nil;
-    prevSource = nil;
-    @prevCb = null;
+        gDmg_IsTrigger  = prevTrigger;
+        gDmg_Type       = prevType;
+        gDmg_RealSource = prevSource;
+        gDmg_Amount     = prevAmount;
+        @gDmg_Callback  = @prevCb;
+    });
 }
 
 // Инициализация системы урона (вызвать в main init)

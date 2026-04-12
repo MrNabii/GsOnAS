@@ -135,7 +135,7 @@ void UpdateBuffSlot(framehandle b, int slotIdx, Buff@ buff) {
         descText += "\n|cffffcc00Осталось: " + FormatDuration(buff.duration) + "|r";
     }
     Jass::SetFrameText(Jass::GetFrameByName("BuffTooltipDesc", slotIdx), descText);
-    // Стаки (charge) — снизу справа
+    
     framehandle cf = Jass::GetFrameByName("GlueWText", slotIdx);
     framehandle cf_text = Jass::GetFrameChild(cf, 1);
     if (buff.stack > 1) {
@@ -289,6 +289,24 @@ void InitBuffSystem() {
         }
     });
     Jass::ConsolePrint("\nBuffSystemInitialized");
+}
+
+Buff@ GetUnitBuff(unit u, int TypeId) {
+    if (u == nil) return null;
+
+    UnitData@ ud = GetUnitData(u);
+    if (ud is null) return null;
+
+    for (uint i = 0; i < ud.buffs.length(); i++) {
+        if (ud.buffs[i].buffTypeId == TypeId) {
+            return ud.buffs[i];
+        }
+    }
+    return null;
+}
+
+bool UnitHaveBuff(unit u, int TypeId) {
+    return GetUnitBuff(u, TypeId) !is null;
 }
 
 // ============================================================

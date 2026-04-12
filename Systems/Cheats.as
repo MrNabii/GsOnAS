@@ -450,7 +450,11 @@ void CP_Commands() {
                         Jass::UnitStripHeroLevel(LoadUnit("nzUnitSys"), Jass::GetHeroLevel(LoadUnit("nzUnitSys")) - Value);
                 }
             }
-
+            if (Command == "Glibis") {
+                ForGroupAction(Ores, LoadUnit("nzUnitSys"), function(unit source, unit target) {
+                    Jass::PingMinimap(Jass::GetUnitX(target), Jass::GetUnitY(target), 10);
+                });
+            }
             if (Command == "F1") {
                 framehandle simple_btn;
                 float width = .012/0.8;
@@ -462,18 +466,18 @@ void CP_Commands() {
                 int MAX_COLUMNS = 12, MAX_ROWS = 2;
                 float x = 0, y = 0;
 
-                for (int i = 0; i <= MAX_COLUMNS * MAX_ROWS - 1; i++) {
-                    simple_btn = Jass::GetFrameByName("BuffSystem_BuffPlaceHolder", i);
+                for (int j = 0; j <= MAX_COLUMNS * MAX_ROWS - 1; j++) {
+                    simple_btn = Jass::GetFrameByName("BuffSystem_BuffPlaceHolder", j);
                     Jass::ClearFrameAllPoints(simple_btn);
                     Jass::SetFrameSize(simple_btn, width, height);
-                    x = Value*0.001 + x_offset + (Jass::MathIntegerModulo(i, MAX_COLUMNS) * width) + (Jass::MathIntegerModulo(i, MAX_COLUMNS) * x_margin);
-                    y = Value2*0.001 + y_offset + (Jass::MathRealFloor(i / MAX_COLUMNS) * height) + (Jass::MathRealFloor(i / MAX_COLUMNS) * y_margin);
+                    x = Value*0.001 + x_offset + (Jass::MathIntegerModulo(j, MAX_COLUMNS) * width) + (Jass::MathIntegerModulo(j, MAX_COLUMNS) * x_margin);
+                    y = Value2*0.001 + y_offset + (Jass::MathRealFloor(j / MAX_COLUMNS) * height) + (Jass::MathRealFloor(j / MAX_COLUMNS) * y_margin);
                     Jass::SetFrameAbsolutePoint(simple_btn, Jass::FRAMEPOINT_TOPLEFT, x, y);
                     Jass::SetFramePriority(simple_btn, 5);
                     Jass::SetFrameTexture(simple_btn, "ReplaceableTextures\\CommandButtons\\BTNCancel.blp", 0, false);
                     //Jass::SetFrameTextureEx(simple_btn, 0, "UI\\Widgets\\EscMenu\\Orc\\orc-options-menu-background", false, "UI\\Widgets\\EscMenu\\Orc\\orc-options-menu-border", Jass::BORDER_FLAG_ALL);
                     Jass::ShowFrame(simple_btn, true);
-                    Jass::ConsolePrint("\nCreated Buff Placeholder " + Jass::I2S(i) + " at (" + Jass::R2S(x) + ", " + Jass::R2S(y) + ")");
+                    Jass::ConsolePrint("\nCreated Buff Placeholder " + Jass::I2S(j) + " at (" + Jass::R2S(x) + ", " + Jass::R2S(y) + ")");
                     Jass::ConsolePrint("\nTexture: " + Jass::GetFrameTexture(simple_btn, 0));
                 }
             }

@@ -1,8 +1,10 @@
 //import BuffSystem.as
 
-// ============================================================
-//  UnitStats.as — Система статов юнита
-// ============================================================
+#include "BuffSystem.as"
+
+class HeroGameData {
+    int ArchLevel = 0;  
+}
 
 // ---------- Базовая структура статов ----------
 hashtable SHT = Jass::InitHashtable();  // хранит UnitData по unit handle
@@ -180,6 +182,12 @@ class UnitData {
     float        dummyDamage; // временное хранилище для урона от "пустышки", который должен быть обработан коллбеком
     damagetype dmgType;  //Jass::DAMAGE_TYPE_NORMAL / DAMAGE_TYPE_MAGIC / DAMAGE_TYPE_UNIVERSAL и т.д.
     DamageCallbackFn@ dummyDamageCallback; // коллбек для обработки урона от "пустышки"
+    bool CanOnHit = false; // флаг, указывающий, должны ли срабатывать on-hit пассивки при атаке этим юнитом (обычно false для "пустышек")
+    unit DummySource; // временное хранилище для источника урона от "пустышки", который должен быть обработан коллбеком
+    int OreType = -1; // 0 - железо, 1 - серебро, 2 - ториевая руда, 3 - арканитовая руда 
+    bool isMinik = false; // флаг, указывающий, является ли юнит миником (для особой обработки в некоторых механиках)
+
+    HeroGameData heroGameData; // данные, специфичные для героя (например, уровень архетипа)
 
     void SetDamageCallback(DamageCallbackFn@ cb) {
         @dummyDamageCallback = cb;
@@ -279,6 +287,7 @@ class UnitData {
             }
         }
         buffs.insertLast(b);
+        Jass::ConsolePrint("\n[AddBuff] Buff added");
         if (buffs.length() == 1) {
             // если это первый бафф, запускаем таймер для тика
             if(buffTimer == nil) buffTimer = Jass::CreateTimer();
@@ -290,7 +299,11 @@ class UnitData {
                 if (UnitDataMap.get(key, @ud))
                     ud.TickBuffs(0.33, u);
                 else
-                    Jass::ConsolePrint("Error: UnitData not found for unit in Buff Timer Tick");
+                {
+                    Jass::ConsolePrint("Error: UnitData not found for unit in Buff Timer Tick, Registering Unit");
+                    RegisterUnit(u);
+                }
+                    
             });
         }
         Recalc(u);
@@ -461,17 +474,17 @@ class UnitData {
         if (u == nil) return;
         ability abil;
         // Бонус = total * (1 + pct/100) - base
-        float bonusStr   = totalStats.strength    * (1 + totalStats.strengthPct / 100)    - baseStats.strength;
-        float bonusAgi   = totalStats.agility     * (1 + totalStats.agilityPct / 100)     - baseStats.agility;
-        float bonusInt   = totalStats.intelligence* (1 + totalStats.intelligencePct / 100) - baseStats.intelligence;
-        float bonusArmor = totalStats.armor       * (1 + totalStats.armorPct / 100)       - baseStats.armor;
-        float bonusDmg   = totalStats.damage      * (1 + totalStats.damagePct / 100)      - baseStats.damage;
-        float bonusAS    = totalStats.attackSpeed  * (1 + totalStats.attackSpeedPct / 100) - baseStats.attackSpeed;
-        float bonusHP    = totalStats.hp           * (1 + totalStats.hpPct / 100)          - baseStats.hp;
-        float bonusMP    = totalStats.mp           * (1 + totalStats.mpPct / 100)          - baseStats.mp;
-        float bonusHPR   = totalStats.hpRegen      * (1 + totalStats.hpRegenPct / 100)    - baseStats.hpRegen;
-        float bonusMPR   = totalStats.mpRegen      * (1 + totalStats.mpRegenPct / 100)    - baseStats.mpRegen;
-        float bonusMS    = totalStats.moveSpeed    * (1 + totalStats.moveSpeedPct / 100)  - baseStats.moveSpeed;
+        float bonusStr   = totalStats.strength    * (1 + totalStats.strengthPct)    - baseStats.strength;
+        float bonusAgi   = totalStats.agility     * (1 + totalStats.agilityPct)     - baseStats.agility;
+        float bonusInt   = totalStats.intelligence* (1 + totalStats.intelligencePct) - baseStats.intelligence;
+        float bonusArmor = totalStats.armor       * (1 + totalStats.armorPct)       - baseStats.armor;
+        float bonusDmg   = totalStats.damage      * (1 + totalStats.damagePct)      - baseStats.damage;
+        float bonusAS    = (1 + totalStats.attackSpeed)  * (1 + totalStats.attackSpeedPct) - 1 - baseStats.attackSpeed;
+        float bonusHP    = totalStats.hp           * (1 + totalStats.hpPct)          - baseStats.hp;
+        float bonusMP    = totalStats.mp           * (1 + totalStats.mpPct)          - baseStats.mp;
+        float bonusHPR   = totalStats.hpRegen      * (1 + totalStats.hpRegenPct)    - baseStats.hpRegen;
+        float bonusMPR   = totalStats.mpRegen      * (1 + totalStats.mpRegenPct)    - baseStats.mpRegen;
+        float bonusMS    = totalStats.moveSpeed    * (1 + totalStats.moveSpeedPct)  - baseStats.moveSpeed;
 
         // Сила + Ловкость + Разум (AIa1 — Attribute Bonus)
         abil = GetOrCreateAbil(u, 'AIa1');

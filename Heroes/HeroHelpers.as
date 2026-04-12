@@ -13,18 +13,17 @@ void IssuePointOrderEx1(unit u, string order, float x, float y, player p, float 
 {
     unit dummy;
     int abi_to_add = 'Apiv';
-
     if (order == "attack")
     {
         abi_to_add = 'Avul';
     }
-
     dummy = Jass::CreateUnit(p, 'e013', x, y, 0.0);
     Jass::UnitAddAbility(dummy, abi_to_add);
     Jass::SetUnitX(dummy, x);
     Jass::SetUnitY(dummy, y);
     Jass::UnitShareVision(dummy, Jass::GetOwningPlayer(u), true);
     Jass::UnitApplyTimedLife(dummy, 'BFig', lifetime);
+    Jass::UnitShareVision(dummy, Jass::GetOwningPlayer(u), true);
     Jass::IssueTargetOrder(u, order, dummy);
 }
 
@@ -128,6 +127,17 @@ void HDealSpellDmg(unit src, unit tgt, float dmg) {
 // Физический урон по одной цели
 void HDealPhysDmg(unit src, unit tgt, float dmg) {
     DealDamage(src, tgt, dmg, Jass::DAMAGE_TYPE_NORMAL);
+}
+
+funcdef void ForGroupAct(unit source, unit target);
+
+void ForGroupAction(group g, unit src, ForGroupAct@ callback) {
+    for(int i = 0; i < Jass::GroupGetCount(g); i++) {
+        unit u2 = Jass::GroupGetUnitByIndex(g, i);
+        if (Jass::IsUnitAlive(u2)) {
+            callback(src, u2);
+        }
+    }
 }
 
 // AOE магический урон (только враги)
@@ -590,7 +600,7 @@ void HFireOnDamage(unit source, unit target) {
 
 // Проверка мёртв ли юнит
 bool HIsUnitDead(unit u) {
-    return u == nil || Jass::IsUnitDead(u);
+    return u == nil || Jass::IsUnitDead(u) || Jass::GetUnitState(u, Jass::UNIT_STATE_LIFE) <= 0;
 }
 
 // Сумма всех статов (str+agi+int)

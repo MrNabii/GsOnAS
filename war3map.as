@@ -1,5 +1,7 @@
+//entry 
 //import-ujapi! common.j
 //import MainPart.as
+
 
 array<unit> g_VK(12);
 array<unit> g_VisionGiver(12);

@@ -1,22 +1,29 @@
-//import OnSpawnAction.as
-//import DamageSystem.as
-//import Cheats.as
+//import General.as
+//import Systems\\AbilitySystem.as
+//import Systems\\OnSpawnAction.as
+//import Systems\\DamageSystem.as
+//import Systems\\Cheats.as
 //import InGameTexts.as
-//import AbilitySystem.as
-//import CraftingSys.as
-//import CraftingSystemFrame.as
+//import Systems\\DeathSystem.as
+//import Systems\\CraftingSys.as
+//import Systems\\CraftingSystemFrame.as
 
 rect mapInitialPlayableArea;
+array<int> g_Gliba(10);
 hashtable UnitHandleHT = Jass::InitHashtable();  // хранит unit handle по handleId
-#include "OnSpawnAction.as"
-#include "DamageSystem.as"
-#include "Cheats.as"
+
+#include "General.as"
+#include "Systems\\AbilitySystem.as"
+#include "Systems\\OnSpawnAction.as"
+#include "Systems\\DamageSystem.as"
+#include "Systems\\Cheats.as"
 #include "InGameTexts.as"
-#include "AbilitySystem.as"
-#include "CraftingSys.as"
-#include "CraftingSystemFrame.as"
+#include "Systems\\DeathSystem.as"
+#include "Systems\\CraftingSys.as"
+#include "Systems\\CraftingSystemFrame.as"
+#include "Systems\\PortalPath.as"
+
 array<int> MapVersion(100);
-array<unit> g_Gliba(10);
 bool TestDebugMode = true;
 force PlayerForces;
 force EnemiesForce;
@@ -560,6 +567,12 @@ quest CreateQuestBJ(int questType, string title, string description, string icon
     return Quest;
 }
 
+bool IsPlaceableAtById( int uid, player whichPlayer, float x, float y )
+{
+    return Jass::IsUnitPlaceableAtById( uid, whichPlayer, x, y, 0, 0, 0, 0, true, true, true, true, false, true );
+}
+
+player FirstPlayer;
 
 void GameStart() {
 
@@ -610,11 +623,13 @@ void GameStart() {
     if(TestDebugMode) Jass::ConsoleEnable(true);
     PlayerForces = Jass::CreateForce();
     EnemiesForce = Jass::CreateForce();
-
+    FirstPlayer = nil;
     for(uint i = 0; i <= 9; i++){
         if ((Jass::GetPlayerController(Jass::Player(i)) == Jass::MAP_CONTROL_USER and Jass::GetPlayerSlotState(Jass::Player(i)) == Jass::PLAYER_SLOT_STATE_PLAYING)) {
             Jass::ForceAddPlayer(PlayerForces, Jass::Player(i));
+            if (FirstPlayer == nil) FirstPlayer = Jass::Player(i);
         }
+        
     }
 
     Jass::ForceAddPlayer(EnemiesForce, Jass::Player(10));
@@ -659,9 +674,11 @@ void GameStart() {
     function(){
         float x = Jass::GetRandomReal(getMinRectX(), getMaxRectX());
         float y = Jass::GetRandomReal(getMinRectY(), getMaxRectY());
-        Jass::CreateUnit( Jass::Player(Jass::GetPlayerNeutralPassive( )), 'h01F', x, y, 0. );
-        TainiksCounter += 1;
-        if (TainiksCounter >= 40) Jass::DestroyTimer(Jass::GetExpiredTimer());
+        if(IsPlaceableAtById('h01F', FirstPlayer, x, y)) {
+            Jass::CreateUnit( Jass::Player(Jass::GetPlayerNeutralPassive( )), 'h01F', x, y, 0. );
+            TainiksCounter += 1;
+        }
+        if (TainiksCounter >= 48) Jass::DestroyTimer(Jass::GetExpiredTimer());
     });
     
     // --------------------------------------------------------- Глыбы
@@ -678,9 +695,14 @@ void GameStart() {
     function(){
         float x = Jass::GetRandomReal(getMinRectX(), getMaxRectX());
         float y = Jass::GetRandomReal(getMinRectY(), getMaxRectY());
-        Jass::CreateUnit( Jass::Player(Jass::GetPlayerNeutralPassive( )), g_Gliba[Jass::GetRandomInt(0,5)], x, y, 0. );
-        GlibasCounter += 1;
-        if (GlibasCounter >= 40) Jass::DestroyTimer(Jass::GetExpiredTimer());
+        int UnitTypeId = g_Gliba[Jass::GetRandomInt(0,5)];
+        Jass::ConsolePrint("\nTrying to spawn gliba at " + x + " " + y + " with id " + Jass::UnitId2String(UnitTypeId));
+        if(IsPlaceableAtById(UnitTypeId, FirstPlayer, x, y)) {
+            Jass::CreateUnit( Jass::Player(Jass::GetPlayerNeutralPassive( )), UnitTypeId, x, y, 0. );
+            GlibasCounter += 1;
+            Jass::ConsolePrint("\n                                                     " + GlibasCounter + " glibas spawned");
+        } 
+        if (GlibasCounter >= 48) Jass::DestroyTimer(Jass::GetExpiredTimer());
     });
 
 
@@ -714,6 +736,7 @@ void GameStart() {
     InitItemDescriptions();
     InitItemTriggers();
     InitSpawnTrigger();
+    InitPortalPath();
     InitAbilityCastSystem();
     InitDamageSystem();
     InitBuffSystem();
