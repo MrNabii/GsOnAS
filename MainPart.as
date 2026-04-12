@@ -3,27 +3,33 @@
 //import Systems\\OnSpawnAction.as
 //import Systems\\DamageSystem.as
 //import Systems\\Cheats.as
+//import Systems\\GameCommands.as
 //import InGameTexts.as
 //import Systems\\DeathSystem.as
 //import Systems\\CraftingSys.as
 //import Systems\\CraftingSystemFrame.as
 //import Systems\\WavesMobs.as
+//import Systems\\MainMultiboard.as
 
 rect mapInitialPlayableArea;
 array<int> g_Gliba(10);
 hashtable UnitHandleHT = Jass::InitHashtable();  // хранит unit handle по handleId
+player Admin_Player;
+timer GameStartTimer;
 
 #include "General.as"
 #include "Systems\\AbilitySystem.as"
 #include "Systems\\OnSpawnAction.as"
 #include "Systems\\DamageSystem.as"
 #include "Systems\\Cheats.as"
+#include "Systems\\GameCommands.as"
 #include "InGameTexts.as"
 #include "Systems\\DeathSystem.as"
 #include "Systems\\CraftingSys.as"
 #include "Systems\\CraftingSystemFrame.as"
 #include "Systems\\PortalPath.as"
 #include "Systems\\WavesMobs.as"
+#include "Systems\\MainMultiboard.as"
 
 bool GameStarted = false;
 array<int> MapVersion(100);
@@ -31,6 +37,8 @@ bool TestDebugMode = true;
 force PlayerForces;
 force EnemiesForce;
 int ALLIANCE_ALLIED = 2;
+sound questWarningSound = Jass::CreateSoundFromLabel("Warning", false, false, false, 10000, 10000);
+sound questHintSound = Jass::CreateSoundFromLabel("Hint", false, false, false, 10000, 10000);
 
 int CAMERA_MARGIN_LEFT   = 0;
 int CAMERA_MARGIN_RIGHT  = 1;
@@ -724,23 +732,25 @@ void GameStart() {
         }
     }
 
-    timer t = Jass::CreateTimer();
-    Jass::TimerStart(t, 120.00, false, function() {
+    GameStartTimer = Jass::CreateTimer();
+    Jass::TimerStart(GameStartTimer, 120.00, false, function() {
         GameStarted = true;
     });
-    timerdialog td = Jass::CreateTimerDialog(t);
-    Jass::TimerDialogSetTitle(td, "TRIGSTR_3799" );
+    timerdialog td = Jass::CreateTimerDialog(GameStartTimer);
+    Jass::TimerDialogSetTitle(td, "До старта" );
     Jass::TimerDialogDisplay(td, true);
-    t = nil;
-    td= nil;
+    td = nil;
 
     InitBaseStats();
     InitItemTemplates();
     InitItemDescriptions();
     InitItemTriggers();
     InitSpawnTrigger();
+    InitDeathSystem();
+    InitGameCommandsAS();
     InitPortalPath();
     InitWaveSystemAS();
+    InitMainMultiboardSystem();
     InitAbilityCastSystem();
     InitDamageSystem();
     InitBuffSystem();

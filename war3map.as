@@ -7,7 +7,8 @@ array<unit> g_VK(12);
 array<unit> g_VisionGiver(12);
 array<unit> g_HeroTaker(12);
 array<unit> g_HeroTaker2(12);
-
+array<float> PlayerPickerPointX(12);
+array<float> PlayerPickerPointY(12);
 
 #include "MainPart.as"
 
@@ -363,15 +364,35 @@ void main() {
 
     
     g_HeroTaker2[0] = Jass::CreateUnit(Jass::Player(0), 'h08F', -6629.3, 6885.0,  92.870);
+    PlayerPickerPointX[0] = -6629.3;
+    PlayerPickerPointY[0] = 6885.0;
     g_HeroTaker2[1] = Jass::CreateUnit(Jass::Player(1), 'h08F', -6595.7, 6935.1, 358.040);
+    PlayerPickerPointX[1] = -6595.7;
+    PlayerPickerPointY[1] = 6935.1;
     g_HeroTaker2[2] = Jass::CreateUnit(Jass::Player(2), 'h08F', -6543.0, 6961.7,   4.780);
+    PlayerPickerPointX[2] = -6543.0;
+    PlayerPickerPointY[2] = 6961.7;
     g_HeroTaker2[3] = Jass::CreateUnit(Jass::Player(3), 'h08F', -6483.2, 6951.0, 286.280);
+    PlayerPickerPointX[3] = -6483.2;
+    PlayerPickerPointY[3] = 6951.0;
     g_HeroTaker2[4] = Jass::CreateUnit(Jass::Player(4), 'h08F', -6437.5, 6907.1, 145.840);
+    PlayerPickerPointX[4] = -6437.5;
+    PlayerPickerPointY[4] = 6907.1;
     g_HeroTaker2[5] = Jass::CreateUnit(Jass::Player(5), 'h08F', -6425.7, 6840.7, 190.110);
+    PlayerPickerPointX[5] = -6425.7;
+    PlayerPickerPointY[5] = 6840.7;
     g_HeroTaker2[6] = Jass::CreateUnit(Jass::Player(6), 'h08F', -6448.5, 6789.1, 146.110);
+    PlayerPickerPointX[6] = -6448.5;
+    PlayerPickerPointY[6] = 6789.1;
     g_HeroTaker2[7] = Jass::CreateUnit(Jass::Player(7), 'h08F', -6508.4, 6758.9, 301.550);
+    PlayerPickerPointX[7] = -6508.4;
+    PlayerPickerPointY[7] = 6758.9;
     g_HeroTaker2[8] = Jass::CreateUnit(Jass::Player(8), 'h08F', -6577.7, 6766.5, 301.730);
+    PlayerPickerPointX[8] = -6577.7;
+    PlayerPickerPointY[8] = 6766.5;
     g_HeroTaker2[9] = Jass::CreateUnit(Jass::Player(9), 'h08F', -6628.4, 6815.7,  50.340);
+    PlayerPickerPointX[9] = -6628.4;
+    PlayerPickerPointY[9] = 6815.7;
 
     g_HeroTaker[0] = Jass::CreateUnit(Jass::Player(0), 'h088', -6529.1, 6851.9, 119.661);
     g_HeroTaker[1] = Jass::CreateUnit(Jass::Player(1), 'h088', -6505.9, 6824.7, 123.129);
@@ -406,9 +427,6 @@ void main() {
     Jass::CreateUnit(Jass::Player(15), 'n076', -7077.3, 5803.3, 270.000);
     Jass::CreateUnit(Jass::Player(15), 'n077', -7070.2, 5336.1, 270.000);
     Jass::CreateUnit(Jass::Player(15), 'h00X', -358.5, 223.2, 222.380);
-
-
-    
     MainPart();
 }
 

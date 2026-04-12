@@ -174,10 +174,9 @@ void InitDeathAbilities() {
 void InitDeathSystem() {
     g_DeathTrigger = Jass::CreateTrigger();
 	for (int i = 0; i < 16; ++i) {
-		player p = Jass::Player(i);
 		Jass::TriggerRegisterPlayerUnitEvent(
 			g_DeathTrigger,
-			p,
+			Jass::Player(i),
 			Jass::EVENT_PLAYER_UNIT_DEATH,
 			nil
 		);

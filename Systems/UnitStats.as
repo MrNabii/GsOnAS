@@ -484,7 +484,7 @@ class UnitData {
         float bonusMP    = totalStats.mp           * (1 + totalStats.mpPct)          - baseStats.mp;
         float bonusHPR   = totalStats.hpRegen      * (1 + totalStats.hpRegenPct)    - baseStats.hpRegen;
         float bonusMPR   = totalStats.mpRegen      * (1 + totalStats.mpRegenPct)    - baseStats.mpRegen;
-        float bonusMS    = totalStats.moveSpeed    * (1 + totalStats.moveSpeedPct)  - baseStats.moveSpeed;
+        float finalMS    = 0.f;
 
         // Сила + Ловкость + Разум (AIa1 — Attribute Bonus)
         abil = GetOrCreateAbil(u, 'AIa1');
@@ -526,7 +526,17 @@ class UnitData {
         Jass::SetUnitManaRegen(u, 1 + bonusMPR);
 
         // Скорость бега (напрямую)
-        Jass::SetUnitMoveSpeed(u, baseStats.moveSpeed + bonusMS);
+        if (baseStats.moveSpeed > 0.f) {
+            float bonusMS = totalStats.moveSpeed * (1 + totalStats.moveSpeedPct) - baseStats.moveSpeed;
+            finalMS = baseStats.moveSpeed + bonusMS;
+        } else {
+            float defaultMS = Jass::GetUnitDefaultMoveSpeed(u);
+            finalMS = defaultMS + totalStats.moveSpeed * (1 + totalStats.moveSpeedPct);
+        }
+        if (finalMS < 0.f) {
+            finalMS = 0.f;
+        }
+        Jass::SetUnitMoveSpeed(u, finalMS);
         abil = nil;
     }
 
@@ -1685,6 +1695,14 @@ void RegisterUnit(unit u) {
     UnitBaseTemplate@ tpl = GetBaseTemplate(typeId);
     if (tpl !is null) {
         ud.baseStats.Add(tpl.stats);
+    } else {
+        // Для юнитов без шаблона не ломаем дефолтную скорость/ману.
+        // Иначе ApplyToUnit выставляет скорость в 0.
+        ud.baseStats.moveSpeed = Jass::GetUnitMoveSpeed(u);
+        ud.baseStats.mp = Jass::GetUnitMaxMana(u) - 100;
+        if (ud.baseStats.mp < 0) {
+            ud.baseStats.mp = 0;
+        }
     }
 
     ud.totalStats.Reset();

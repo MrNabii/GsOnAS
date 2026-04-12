@@ -32,6 +32,7 @@ int udg_Wave_Number_Count = 1;
 int udg_Wave_Number_TP = 1;
 bool udg_Wave_Last = false;
 int udg_wave_count = 0;
+bool udg_WaveWait = false;
 
 bool WS_ShortMode = false;
 
@@ -378,7 +379,6 @@ void WS_ProcessCommonWave() {
     int maxTicks = WS_WaveMaxSpawns[waveNum];
     if (udg_Wave_count_spawns <= maxTicks) {
         if (udg_wave_count >= 60) {
-            udg_Wave_next_time = 1;
             return;
         }
 
@@ -396,28 +396,24 @@ void WS_ProcessCommonWave() {
     if (udg_wave_count <= 0) {
         WS_EndCurrentWave();
     } else {
-        udg_Wave_next_time = 1;
+        udg_WaveWait = true;
     }
 }
 
 void WS_ProcessBossOrSpecialWave() {
     if (udg_Wave_count_spawns == 0) {
         WS_StartCurrentWave();
-        udg_Wave_next_time = 1;
         return;
     }
 
     if (udg_wave_count <= 0) {
         WS_EndCurrentWave();
-    } else {
-        udg_Wave_next_time = 1;
-    }
+    } 
 }
 
 void WS_OnTick() {
     if (udg_Wave_Last) return;
     if(!GameStarted) return;
-
     if (udg_Wave_next_time > 0) {
         if (WS_ShortMode && udg_Wave_next_time > 10) {
             udg_Wave_next_time = 10;
