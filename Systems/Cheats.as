@@ -983,7 +983,7 @@ void CP_Commands() {
             if (Value != 0 and Payload != "") {
                 Jass::DisplayTimedTextToPlayer(Jass::Player(PID), 0, 0, 10,
                     "|cFFff9900Object|r [|cFF00cc66" + ID2S(Value) + "|r] |cFF00cc66spawned|r");
-                itm = Jass::CreateItem(Value, Jass::GetUnitX(LoadUnit("nzUnitSys")), Jass::GetUnitY(LoadUnit("nzUnitSys")));
+                itm = CreateRegisteredItem(Value, Jass::GetUnitX(LoadUnit("nzUnitSys")), Jass::GetUnitY(LoadUnit("nzUnitSys")));
                 int chargeVal = Jass::S2I(Jass::SubString(Text, 7, 10));
                 if (chargeVal > 1)
                     Jass::SetItemCharges(itm, chargeVal);

@@ -526,13 +526,20 @@ class UnitData {
         Jass::SetUnitManaRegen(u, 1 + bonusMPR);
 
         // Скорость бега (напрямую)
-        if (baseStats.moveSpeed > 0.f) {
-            float bonusMS = totalStats.moveSpeed * (1 + totalStats.moveSpeedPct) - baseStats.moveSpeed;
-            finalMS = baseStats.moveSpeed + bonusMS;
-        } else {
-            float defaultMS = Jass::GetUnitDefaultMoveSpeed(u);
-            finalMS = defaultMS + totalStats.moveSpeed * (1 + totalStats.moveSpeedPct);
+        float baseMS = baseStats.moveSpeed;
+        if (baseMS <= 0.f) {
+            baseMS = Jass::GetUnitDefaultMoveSpeed(u);
         }
+
+        float flatMSBonus = totalStats.moveSpeed - baseStats.moveSpeed;
+        finalMS = (baseMS + flatMSBonus) * (1 + totalStats.moveSpeedPct);
+
+        bool hardRoot = (totalStats.moveSpeedPct >= -1.001f && totalStats.moveSpeedPct <= -0.999f);
+        if (!hardRoot && finalMS <= 0.f) {
+            float currentMS = Jass::GetUnitMoveSpeed(u);
+            finalMS = (currentMS > 0.f) ? currentMS : baseMS;
+        }
+
         if (finalMS < 0.f) {
             finalMS = 0.f;
         }
@@ -546,6 +553,7 @@ class UnitData {
 
 dictionary BaseStatsMap;   // ключ: unitTypeId, значение: UnitBaseTemplate@
 dictionary ItemStatsMap;   // ключ: itemTypeId, значение: ItemBaseTemplate@
+dictionary ItemInstanceMap; // ключ: itemHandleId, значение: ItemStats@
 
 // --- Шаблон базовых статов по типу юнита ---
 class UnitBaseTemplate {
@@ -640,6 +648,124 @@ ItemStats@ CreateItemFromTemplate(int itemTypeId, int slot, int handleId = 0, in
     itm.abilityManaCost = tpl.abilityManaCost;
     itm.stats.Reset();
     itm.stats.Add(tpl.stats);
+    return itm;
+}
+
+int NormalizeItemOwnerPlayerId(int ownerPlayerId) {
+    if (ownerPlayerId > 0) {
+        return ownerPlayerId;
+    }
+    return -1;
+}
+
+int ItemOwnerToLegacyStorage(int ownerPlayerId) {
+    if (ownerPlayerId > 0) {
+        return ownerPlayerId;
+    }
+    return 0;
+}
+
+ItemStats@ CreateBasicItemStats(int itemTypeId, int slot, int handleId, int ownerPlayerId = -1) {
+    ItemStats itm;
+    itm.itemTypeId = itemTypeId;
+    itm.itemHandleId = handleId;
+    itm.slot = slot;
+    itm.itemLevel = 1;
+    itm.maxStack = 0;
+    itm.saveId = 0;
+    itm.allowedClass = 0;
+    itm.ownerPlayerId = NormalizeItemOwnerPlayerId(ownerPlayerId);
+    itm.abilityId = 0;
+    itm.abilityCooldown = 0;
+    itm.abilityManaCost = 0;
+    itm.stats.Reset();
+    return itm;
+}
+
+ItemStats@ GetRegisteredItemDataByHandleId(int itemHandleId) {
+    ItemStats@ itmData;
+    if (ItemInstanceMap.get("" + itemHandleId, @itmData)) {
+        return itmData;
+    }
+    return null;
+}
+
+ItemStats@ GetRegisteredItemData(item itm) {
+    if (itm == nil) {
+        return null;
+    }
+    return GetRegisteredItemDataByHandleId(Jass::GetHandleId(itm));
+}
+
+ItemStats@ RegisterItemInstance(item itm, int ownerPlayerId = -1, int slot = -1) {
+    if (itm == nil) {
+        return null;
+    }
+
+    int handleId = Jass::GetHandleId(itm);
+    int itemTypeId = Jass::GetItemTypeId(itm);
+    string key = "" + handleId;
+
+    int normalizedOwner = NormalizeItemOwnerPlayerId(ownerPlayerId);
+    if (normalizedOwner < 0) {
+        ItemStats@ existingData = GetRegisteredItemDataByHandleId(handleId);
+        if (existingData !is null && existingData.ownerPlayerId > 0) {
+            normalizedOwner = existingData.ownerPlayerId;
+        } else {
+            int legacyOwner = Jass::LoadInteger(UnitHandleHT, handleId, 'ownr');
+            if (legacyOwner > 0) {
+                normalizedOwner = legacyOwner;
+            }
+        }
+    }
+
+    ItemStats@ itmData = GetRegisteredItemDataByHandleId(handleId);
+    if (itmData is null) {
+        @itmData = CreateItemFromTemplate(itemTypeId, slot, handleId, normalizedOwner);
+        if (itmData is null) {
+            @itmData = CreateBasicItemStats(itemTypeId, slot, handleId, normalizedOwner);
+        }
+        ItemInstanceMap.set(key, @itmData);
+    } else {
+        itmData.itemTypeId = itemTypeId;
+        itmData.itemHandleId = handleId;
+        if (slot >= 0) {
+            itmData.slot = slot;
+        }
+
+        ItemBaseTemplate@ tpl = GetItemTemplate(itemTypeId);
+        if (tpl !is null) {
+            itmData.itemLevel = tpl.itemLevel;
+            itmData.maxStack = tpl.maxStack;
+            itmData.saveId = tpl.saveId;
+            itmData.allowedClass = tpl.allowedClass;
+            itmData.abilityId = tpl.abilityId;
+            itmData.abilityCooldown = tpl.abilityCooldown;
+            itmData.abilityManaCost = tpl.abilityManaCost;
+            itmData.stats.Reset();
+            itmData.stats.Add(tpl.stats);
+        }
+    }
+
+    if (slot >= 0) {
+        itmData.slot = slot;
+    }
+    itmData.ownerPlayerId = normalizedOwner;
+    Jass::SaveInteger(UnitHandleHT, handleId, 'ownr', ItemOwnerToLegacyStorage(itmData.ownerPlayerId));
+    return itmData;
+}
+
+int GetItemOwnerPlayerId(item itm) {
+    ItemStats@ itmData = RegisterItemInstance(itm);
+    if (itmData is null) {
+        return -1;
+    }
+    return itmData.ownerPlayerId;
+}
+
+item CreateRegisteredItem(int itemTypeId, float x, float y, int ownerPlayerId = -1) {
+    item itm = Jass::CreateItem(itemTypeId, x, y);
+    RegisterItemInstance(itm, ownerPlayerId);
     return itm;
 }
 
@@ -1767,11 +1893,11 @@ void OnItemPickup() {
     int slot = FindItemSlot(u, itm);
     if (slot < 0) { u = nil; itm = nil; return; }
 
-    // Получить шаблон для проверок
-    ItemBaseTemplate@ tpl = GetItemTemplate(itemTypeId);
+    ItemStats@ itmStats = RegisterItemInstance(itm, -1, slot);
+    if (itmStats is null) { u = nil; itm = nil; return; }
 
     // --- Личный предмет: если есть владелец и это не наш --- выбросить
-    int ownerPid = Jass::LoadInteger(UnitHandleHT, Jass::GetHandleId(itm), 'ownr');
+    int ownerPid = itmStats.ownerPlayerId;
     if (ownerPid > 0) {
         int myPid = Jass::GetPlayerId(Jass::GetOwningPlayer(u)) + 1;
         if (ownerPid != myPid) {
@@ -1782,9 +1908,10 @@ void OnItemPickup() {
         }
     }
 
-    ItemStats@ itmStats = CreateItemFromTemplate(itemTypeId, slot, Jass::GetHandleId(itm),
-        (ownerPid > 0) ? ownerPid : -1);
-    if (itmStats is null) { u = nil; itm = nil; return; }
+    // В UnitData добавляем только предметы с шаблоном статов.
+    if (GetItemTemplate(itemTypeId) is null) { u = nil; itm = nil; return; }
+
+    itmStats.slot = slot;
     Jass::ConsolePrint("\nOnItemPickup: unit=" + Jass::GetUnitName(u) + ", item=" + Jass::GetItemName(itm));
     ud.AddItem(itmStats, u); // Recalc внутри, проверки уровня/класса/стака в Recalc
     u = nil;
@@ -1793,7 +1920,7 @@ void OnItemPickup() {
 
 // --- Назначить владельца предмету (playerId 1-based, 0 = ничей) ---
 void SetItemOwner(item itm, int playerId) {
-    Jass::SaveInteger(UnitHandleHT, Jass::GetHandleId(itm), 'ownr', playerId);
+    RegisterItemInstance(itm, playerId);
 }
 
 void OnItemDrop() {

@@ -1,13 +1,16 @@
 //import General.as
 //import Systems\\AbilitySystem.as
 //import Systems\\OnSpawnAction.as
+//import Systems\\StartFlow.as
 //import Systems\\DamageSystem.as
 //import Systems\\Cheats.as
 //import Systems\\GameCommands.as
+//import Systems\\LeaverOutOfList.as
 //import InGameTexts.as
 //import Systems\\DeathSystem.as
 //import Systems\\CraftingSys.as
 //import Systems\\CraftingSystemFrame.as
+//import Systems\\GlibaPlacePoints.as
 //import Systems\\WavesMobs.as
 //import Systems\\MainMultiboard.as
 
@@ -20,13 +23,16 @@ timer GameStartTimer;
 #include "General.as"
 #include "Systems\\AbilitySystem.as"
 #include "Systems\\OnSpawnAction.as"
+#include "Systems\\StartFlow.as"
 #include "Systems\\DamageSystem.as"
 #include "Systems\\Cheats.as"
 #include "Systems\\GameCommands.as"
+#include "Systems\\LeaverOutOfList.as"
 #include "InGameTexts.as"
 #include "Systems\\DeathSystem.as"
 #include "Systems\\CraftingSys.as"
 #include "Systems\\CraftingSystemFrame.as"
+#include "Systems\\GlibaPlacePoints.as"
 #include "Systems\\PortalPath.as"
 #include "Systems\\WavesMobs.as"
 #include "Systems\\MainMultiboard.as"
@@ -578,9 +584,81 @@ quest CreateQuestBJ(int questType, string title, string description, string icon
     return Quest;
 }
 
-bool IsPlaceableAtById( int uid, player whichPlayer, float x, float y )
+bool IsPlaceableAtById( float x, float y )
 {
-    return Jass::IsUnitPlaceableAtById( uid, whichPlayer, x, y, 0, 0, 0, 0, true, true, true, true, false, true );
+    return Jass::IsUnitPlaceableAtById( 'h008', Jass::Player(0), x, y, 0, 0, 0, 0, true, false, false, false, false, false );
+}
+
+void SpawnInitResources() {
+    // --------------------------------------------------------- Глыбы
+    g_Gliba[0] = 'h008';
+    g_Gliba[1] = 'h009';
+    g_Gliba[2] = 'h00A';
+    g_Gliba[3] = 'h00B';
+    g_Gliba[4] = 'h00C';
+    g_Gliba[5] = 'h007';
+    float x = 0;
+    float y = 0;
+
+    InitGlibaPlacePoints();
+    int glibaPointCount = GetGlibaPlacePointCount();
+    int random;
+
+    TainiksCounter = 0;
+    for (int i = 0; i < 128; i++) {
+        if (glibaPointCount > 0) {
+            random = Jass::GetRandomInt(0, glibaPointCount - 1);
+            x = GetRandomGlibaPlaceX(random);
+            y = GetRandomGlibaPlaceY(random);
+        } else {
+            x = Jass::GetRandomReal(getMinRectX(), getMaxRectX());
+            y = Jass::GetRandomReal(getMinRectY(), getMaxRectY());
+        }
+        Jass::CreateUnit(Jass::Player(Jass::GetPlayerNeutralPassive()), 'h01F', x, y, 0.0);
+        TainiksCounter += 1;
+    }
+
+    GlibasCounter = 0;
+    for (int i = 0; i < 48; i++) {
+        if (glibaPointCount > 0) {
+            random = Jass::GetRandomInt(0, glibaPointCount - 1);
+            x = GetRandomGlibaPlaceX(random);
+            y = GetRandomGlibaPlaceY(random);
+        } else {
+            x = Jass::GetRandomReal(getMinRectX(), getMaxRectX());
+            y = Jass::GetRandomReal(getMinRectY(), getMaxRectY());
+        }
+        Jass::CreateUnit(Jass::Player(Jass::GetPlayerNeutralPassive()), 'h008', x, y, 0.0);
+        GlibasCounter += 1;
+    }
+}
+
+void TestAllPoints() {
+    timer t = Jass::CreateTimer();
+    float h = Jass::GetHandleId(t);
+    Jass::SaveReal(SkillHT, h, 0, getMinRectX());
+    Jass::SaveReal(SkillHT, h, 1, getMinRectY());
+    Jass::TimerStart(t, 0.001, true, function() {
+        timer t = Jass::GetExpiredTimer();
+        int h = Jass::GetHandleId(t);
+        textfilehandle file = Jass::TextFileOpen("points.txt");
+        float x = Jass::LoadReal(SkillHT, h, 0);
+        float y = Jass::LoadReal(SkillHT, h, 1);
+        Jass::SaveReal(SkillHT, h, 0, x + 128);
+        if (x + 128 >= getMaxRectX()) {
+            Jass::SaveReal(SkillHT, h, 0, getMinRectX());
+            Jass::SaveReal(SkillHT, h, 1, y + 128);
+        }
+        if (y + 128 >= getMaxRectY()) {
+            Jass::DestroyTimer(t);
+        }
+        if (IsPlaceableAtById(x, y)) {
+            Jass::TextFileWriteLine(file, "Placeable at x: " + x + " y: " + y);
+            Jass::ConsolePrint("\nPlaceable at x: " + x + " y: " + y);
+        }
+        Jass::TextFileClose(file);
+    });
+    
 }
 
 player FirstPlayer;
@@ -589,6 +667,7 @@ void GameStart() {
 
     MapVersion[0] = 300;
     MapVersion[1] = 310;
+    Jass::LoadTOCFile("war3mapImported\\SkillCharge.toc");
 
     Jass::DestroyTimer(Jass::GetExpiredTimer());
     InitArrayValues();
@@ -600,13 +679,14 @@ void GameStart() {
         Jass::ShowUnit(g_VK[i], false);
     }
 
-
+    Jass::EnableOperationLimit(false);
 
     Jass::AntiHackEnable(true);
     Jass::AntiHackEnableModuleCheck(true);
     Jass::AntiHackEnableAddressCheck(true);
     Jass::AntiHackEnableBreakpointCheck(true);
     Jass::AntiHackEnableProcessCheck(true);
+
     Jass::SetMoveSpeedMaxAllowed(800);
     Jass::SetMoveSpeedMinAllowed(0);
 
@@ -615,6 +695,7 @@ void GameStart() {
     //TimerStart(udg_Bridge_1_Timer, GetRandomReal(120.00, 360.00), false, null) 
     // TODO Надо сделать спавн мостов.
     // TriggerExecute(gg_trg_Admin_rights) Admin Rights
+    
     
 
 
@@ -640,9 +721,8 @@ void GameStart() {
             Jass::ForceAddPlayer(PlayerForces, Jass::Player(i));
             if (FirstPlayer == nil) FirstPlayer = Jass::Player(i);
         }
-        
     }
-
+    Admin_Player = FirstPlayer;
     Jass::ForceAddPlayer(EnemiesForce, Jass::Player(10));
     Jass::ForceAddPlayer(EnemiesForce, Jass::Player(11));
     Jass::ForceAddPlayer(EnemiesForce, Jass::Player(13));
@@ -678,43 +758,9 @@ void GameStart() {
     Jass::SuspendTimeOfDay(true);
     Jass::CameraSetSmoothingFactor(1.);
 
+    //TestAllPoints();
 
-
-    TainiksCounter = 0;
-    Jass::TimerStart(Jass::CreateTimer(), 0.03125, true, 
-    function(){
-        float x = Jass::GetRandomReal(getMinRectX(), getMaxRectX());
-        float y = Jass::GetRandomReal(getMinRectY(), getMaxRectY());
-        if(IsPlaceableAtById('h01F', FirstPlayer, x, y)) {
-            Jass::CreateUnit( Jass::Player(Jass::GetPlayerNeutralPassive( )), 'h01F', x, y, 0. );
-            TainiksCounter += 1;
-        }
-        if (TainiksCounter >= 48) Jass::DestroyTimer(Jass::GetExpiredTimer());
-    });
     
-    // --------------------------------------------------------- Глыбы
-    g_Gliba[0] = 'h008';
-    g_Gliba[1] = 'h009';
-    g_Gliba[2] = 'h00A';
-    g_Gliba[3] = 'h00B';
-    g_Gliba[4] = 'h00C';
-    g_Gliba[5] = 'h007';
-    
-    GlibasCounter = 0;
-    Jass::TimerStart(
-    Jass::CreateTimer(), 0.03125, true, 
-    function(){
-        float x = Jass::GetRandomReal(getMinRectX(), getMaxRectX());
-        float y = Jass::GetRandomReal(getMinRectY(), getMaxRectY());
-        int UnitTypeId = g_Gliba[Jass::GetRandomInt(0,5)];
-        Jass::ConsolePrint("\nTrying to spawn gliba at " + x + " " + y + " with id " + Jass::UnitId2String(UnitTypeId));
-        if(IsPlaceableAtById(UnitTypeId, FirstPlayer, x, y)) {
-            Jass::CreateUnit( Jass::Player(Jass::GetPlayerNeutralPassive( )), UnitTypeId, x, y, 0. );
-            GlibasCounter += 1;
-            Jass::ConsolePrint("\n                                                     " + GlibasCounter + " glibas spawned");
-        } 
-        if (GlibasCounter >= 48) Jass::DestroyTimer(Jass::GetExpiredTimer());
-    });
 
 
     for(uint i = 0; i < 10; i ++){
@@ -732,35 +778,28 @@ void GameStart() {
         }
     }
 
-    GameStartTimer = Jass::CreateTimer();
-    Jass::TimerStart(GameStartTimer, 120.00, false, function() {
-        GameStarted = true;
-    });
-    timerdialog td = Jass::CreateTimerDialog(GameStartTimer);
-    Jass::TimerDialogSetTitle(td, "До старта" );
-    Jass::TimerDialogDisplay(td, true);
-    td = nil;
-
+    SG_InitStartTimer();
     InitBaseStats();
     InitItemTemplates();
     InitItemDescriptions();
     InitItemTriggers();
     InitSpawnTrigger();
     InitDeathSystem();
+    InitAbilityCastSystem();
+    InitDamageSystem();
+    SpawnInitResources();
     InitGameCommandsAS();
+    InitLeaverOutOfListAS();
     InitPortalPath();
     InitWaveSystemAS();
     InitMainMultiboardSystem();
-    InitAbilityCastSystem();
-    InitDamageSystem();
-    InitBuffSystem();
-    if(TestDebugMode) InitCheats();
     InitCraftingSystem();
+    InitBuffSystem();
     InitCraftingSystemFrame();
-    OpenCraftBrowser(0);
-    Jass::ConsolePrint("GameStartCompleted");
+    if(TestDebugMode) InitCheats();
+    Jass::ConsolePrint("\nGameStartCompleted");
 }
 
 void MainPart() {
-    Jass::TimerStart(Jass::CreateTimer(), 0.02, false, @GameStart ) ;
+    Jass::TimerStart(Jass::CreateTimer(), 0.1, false, @GameStart ) ;
 }

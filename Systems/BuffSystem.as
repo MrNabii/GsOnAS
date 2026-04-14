@@ -123,34 +123,43 @@ framehandle AddFrameTooltip(framehandle simple_btn, int id, int intVal, int fram
     return tooltipTitle;
 }
 
-void UpdateBuffSlot(framehandle b, int slotIdx, Buff@ buff) {
-    Jass::SetFrameTexture(b, buff.iconPath, 1, true);
-    Jass::ShowFrame(b, true);
-    // Tooltip: название и описание
-    Jass::SetFrameText(Jass::GetFrameByName("BuffTooltipTitle", slotIdx), buff.name);
+void UpdateBuffSlot(framehandle b, int slotIdx, Buff@ buff, int playerId) {
+    if (Jass::GetLocalPlayer() == Jass::Player(playerId)) {
+        Jass::SetFrameTexture(b, buff.iconPath, 1, true);
+        Jass::ShowFrame(b, true);
+        Jass::SetFrameText(Jass::GetFrameByName("BuffTooltipTitle", slotIdx), buff.name);
+    }
     string descText = buff.description;
     if (buff.isAura) {
         descText += "\n|cffffcc00Радиус: " + Jass::I2S(Jass::R2I(buff.auraRadius)) + "|r";
     } else if (buff.duration > 0) {
         descText += "\n|cffffcc00Осталось: " + FormatDuration(buff.duration) + "|r";
     }
-    Jass::SetFrameText(Jass::GetFrameByName("BuffTooltipDesc", slotIdx), descText);
+    if (Jass::GetLocalPlayer() == Jass::Player(playerId))
+        Jass::SetFrameText(Jass::GetFrameByName("BuffTooltipDesc", slotIdx), descText);
     
     framehandle cf = Jass::GetFrameByName("GlueWText", slotIdx);
     framehandle cf_text = Jass::GetFrameChild(cf, 1);
     if (buff.stack > 1) {
-        Jass::SetFrameText(cf_text, "|cffE9D04F" + Jass::I2S(buff.stack) + "|r");
-        Jass::ShowFrame(cf, true);
+        if (Jass::GetLocalPlayer() == Jass::Player(playerId))
+            Jass::SetFrameText(cf_text, "|cffE9D04F" + Jass::I2S(buff.stack) + "|r");
+        if (Jass::GetLocalPlayer() == Jass::Player(playerId))
+            Jass::ShowFrame(cf, true);
     } else {
-        Jass::ShowFrame(cf, false);
+        if (Jass::GetLocalPlayer() == Jass::Player(playerId))
+            Jass::ShowFrame(cf, false);
     }
     // Длительность — по центру иконки
     framehandle df = Jass::GetFrameByName("BuffDurationText", slotIdx);
     if (buff.duration > 0) {
-        Jass::SetFrameText(df, "|cFFE9DEA6" + FormatDuration(buff.duration) + "|r");
-        Jass::ShowFrame(df, true);
+        if (Jass::GetLocalPlayer() == Jass::Player(playerId))
+            Jass::SetFrameText(df, "|cFFE9DEA6" + FormatDuration(buff.duration) + "|r");
+        
+        if (Jass::GetLocalPlayer() == Jass::Player(playerId))
+            Jass::ShowFrame(df, true);
     } else {
-        Jass::ShowFrame(df, false);
+        if (Jass::GetLocalPlayer() == Jass::Player(playerId))
+            Jass::ShowFrame(df, false);
     }
 }
 
@@ -183,8 +192,7 @@ framehandle AddChargeForItem(framehandle simple_btn) {
 }
 
 void InitBuffSystem() {
-    Jass::LoadTOCFile("war3mapImported\\SkillCharge.toc");
-    Jass::EditBlackBorders(0., 0.);
+    //Jass::EditBlackBorders(0., 0.);
     framehandle simple_btn;
     framehandle tooltipTitle;
 
@@ -240,7 +248,7 @@ void InitBuffSystem() {
         unit u = Jass::GetTriggerUnit();
         Selectedunit[Jass::GetPlayerId(Jass::GetTriggerPlayer())] = u;
         // TODO: обработка выделения юнита (u)
-        Jass::ConsolePrint("Selected: " + Jass::GetUnitName(u));
+        Jass::ConsolePrint("\nSelected: " + Jass::GetUnitName(u));
     });
     Jass::TriggerAddAction(trgDeselect, function() {
         Selectedunit[Jass::GetPlayerId(Jass::GetTriggerPlayer())] = nil;
@@ -271,16 +279,12 @@ void InitBuffSystem() {
                         if (ud.buffs[j].isBuff && buffIdx < 19) {
                             int slotIdx = int(buffIdx);
                             b = Jass::GetFrameByName("BuffSystem_BuffPlaceHolder", slotIdx);
-                            if (Jass::GetLocalPlayer() == Jass::Player(i)) {
-                                UpdateBuffSlot(b, slotIdx, ud.buffs[j]);
-                            }
+                            UpdateBuffSlot(b, slotIdx, ud.buffs[j], i);
                             buffIdx++;
                         } else if (!ud.buffs[j].isBuff && debuffIdx < 19) {
                             int slotIdx = int(debuffIdx) + 19;
                             b = Jass::GetFrameByName("BuffSystem_BuffPlaceHolder", slotIdx);
-                            if (Jass::GetLocalPlayer() == Jass::Player(i)) {
-                                UpdateBuffSlot(b, slotIdx, ud.buffs[j]);
-                            }
+                            UpdateBuffSlot(b, slotIdx, ud.buffs[j], i);
                             debuffIdx++;
                         }
                     }

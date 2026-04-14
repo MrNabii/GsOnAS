@@ -247,8 +247,6 @@ void GC_OnChat() {
     int abi_id = 0;
     framehandle fh;
 
-    int players_want_to_start = 0;
-
     GC_HandleKickVote(chatString, chatPlayer, convertedPid);
 
     Jass::ConsolePrint("Chat command: " + chatString + " from player " + Jass::GetPlayerName(chatPlayer));
@@ -477,16 +475,9 @@ void GC_OnChat() {
         }
 
         if (!GameStarted and GC_IsSkipCmd(chatString)) {
-            if (players_want_to_start == CountPlayersInForce(PlayerForces)) {
+            if (SG_CanSkipStart()) {
                 DisplayTextToPlayers("TRIGSTR_500");
-                Jass::PauseTimer(GameStartTimer);
-                if (Jass::TimerGetRemaining(GameStartTimer) > 10.) {
-                    Jass::TimerStart(GameStartTimer, 10.00, false, function() {
-                        GameStarted = true;
-                    });
-                } else {
-                    Jass::ResumeTimer(GameStartTimer);
-                }
+                SG_SetStartTimerTo10();
             } else {
                 DisplayTextToPlayers("TRIGSTR_499");
             }
@@ -495,13 +486,13 @@ void GC_OnChat() {
 
         if (!GameStarted and (chatString == "-time" or chatString == "-ешьу" or chatString == "-тайм")) {
             DisplayTextToPlayers("TRIGSTR_501");
-            Jass::PauseTimer(GameStartTimer);
+            SG_PauseStartTimer();
             return;
         }
 
         if (!GameStarted and (chatString == "-notime" or chatString == "-тщешьу" or chatString == "-нотайм")) {
             DisplayTextToPlayers("TRIGSTR_502");
-            Jass::ResumeTimer(GameStartTimer);
+            SG_ResumeStartTimer();
             return;
         }
     }
@@ -566,7 +557,6 @@ void GC_OnChat() {
 
             //Jass::EnumItemsInRect(gg_rct_rect_008, nil, @GC_RemoveItemsOnRepick);
 
-            players_want_to_start -= 1;
             Jass::GroupRemoveUnit(Goblinzz, u);
 
             Jass::RemoveUnit(DamageDummy[convertedPid]);
@@ -585,9 +575,8 @@ void GC_OnChat() {
 
     if (GC_IsCamCmd(chatString)) {
         if (chatLen >= 4) {
-            Cam_dist[convertedPid] = Jass::S2R(Jass::SubString(chatString, chatLen - 4, chatLen));
+            Cam_dist[convertedPid] = Jass::S2I(Jass::SubString(chatString, chatLen - 4, chatLen));
         }
-
         if (Cam_dist[convertedPid] >= 1000. and Cam_dist[convertedPid] <= 4000.) {
             if (Jass::GetLocalPlayer() == chatPlayer) {
                 Jass::DisplayTextToPlayer(Jass::GetLocalPlayer(), 0, 0,

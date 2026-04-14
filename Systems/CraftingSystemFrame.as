@@ -5,13 +5,13 @@
 // ─── Менеджер больших панелей (единая система фреймов) ───
 // При открытии одной панели — предыдущая закрывается, не наслаиваясь.
 // Чтобы подключить другую панель:
-//   CF_RegisterPanel(MY_PANEL_ID, @MyPanelHideAll);
-//   CF_OpenPanel(MY_PANEL_ID);
+//   CF_RegisterPanel(MY_PANEL_ID, @MyPanelHideForPlayer);
+//   CF_OpenPanel(playerId, MY_PANEL_ID);
 
 
 
-int CF_ActivePanelId = 0;
-funcdef void PanelCloseCallback();
+array<int> CF_ActivePanelId(12);
+funcdef void PanelCloseCallback(int pid);
 array<PanelCloseCallback@> CF_PanelClosers(16);
 
 void CF_RegisterPanel(int panelId, PanelCloseCallback@ closer) {
@@ -19,22 +19,27 @@ void CF_RegisterPanel(int panelId, PanelCloseCallback@ closer) {
         @CF_PanelClosers[panelId] = closer;
 }
 
-void CF_CloseActivePanel() {
-    if (CF_ActivePanelId > 0 && CF_ActivePanelId < 16) {
-        if (CF_PanelClosers[CF_ActivePanelId] !is null)
-            CF_PanelClosers[CF_ActivePanelId]();
+void CF_CloseActivePanel(int pid) {
+    if (pid < 0 || pid >= 12) return;
+
+    int activePanelId = CF_ActivePanelId[pid];
+    if (activePanelId > 0 && activePanelId < 16) {
+        if (CF_PanelClosers[activePanelId] !is null)
+            CF_PanelClosers[activePanelId](pid);
     }
-    CF_ActivePanelId = 0;
+    CF_ActivePanelId[pid] = 0;
 }
 
 // Открыть панель. Если та же панель уже открыта — toggle off.
-void CF_OpenPanel(int panelId) {
-    if (CF_ActivePanelId == panelId) {
-        CF_CloseActivePanel();
+void CF_OpenPanel(int pid, int panelId) {
+    if (pid < 0 || pid >= 12) return;
+
+    if (CF_ActivePanelId[pid] == panelId) {
+        CF_CloseActivePanel(pid);
         return;
     }
-    CF_CloseActivePanel();
-    CF_ActivePanelId = panelId;
+    CF_CloseActivePanel(pid);
+    CF_ActivePanelId[pid] = panelId;
 }
 
 
@@ -237,7 +242,8 @@ void CB_UpdateGrid(int pid) {
                     Jass::ShowFrame(CB_GridBtns[i], false);
             }
         }
-        Jass::SetFrameText(CB_GridPageText, Jass::I2S(page + 1) + "/" + Jass::I2S(totalPages));
+        if (Jass::GetLocalPlayer() == Jass::Player(pid))
+            Jass::SetFrameText(CB_GridPageText, Jass::I2S(page + 1) + "/" + Jass::I2S(totalPages));
     }
 }
 
@@ -272,8 +278,9 @@ void CB_UpdateDetail(int pid) {
 
         if (recipeCount > 0) {
             CraftRecipe@ recipe = icd.GetRecipe(recipeIdx);
-            Jass::SetFrameText(CB_RecipeLabel,
-                "|cffffcc00 " + PlaceNames[recipe.GetPlace()-1] + " " + Jass::I2S(recipeIdx + 1) + "/" + Jass::I2S(recipeCount) + "|r");
+            if(Jass::GetLocalPlayer() == Jass::Player(pid))
+                Jass::SetFrameText(CB_RecipeLabel,
+                    "|cffffcc00 " + PlaceNames[recipe.GetPlace()-1] + " " + Jass::I2S(recipeIdx + 1) + "/" + Jass::I2S(recipeCount) + "|r");
             if(Jass::GetLocalPlayer() == Jass::Player(pid))
                 Jass::ShowFrame(CB_RecipePrevBtn, recipeCount > 1);
             if(Jass::GetLocalPlayer() == Jass::Player(pid))
@@ -414,7 +421,9 @@ void CB_HideAll() {
 // ─── Публичная функция: открыть браузер крафтов ───
 // pid:         ID игрока (0-based)
 void OpenCraftBrowser(int pid, int filterPlace = 0) {
-    CF_OpenPanel(CRAFT_PANEL_ID);
+    CF_OpenPanel(pid, CRAFT_PANEL_ID);
+    if (CF_ActivePanelId[pid] != CRAFT_PANEL_ID) return;
+
     CB_FilterPlace[pid] = filterPlace;
     CB_Show(pid);
 }
@@ -422,7 +431,7 @@ void OpenCraftBrowser(int pid, int filterPlace = 0) {
 // ─── Публичная функция: закрыть браузер крафтов ───
 void CloseCraftBrowser(int pid) {
     CB_Hide(pid);
-    if (CF_ActivePanelId == CRAFT_PANEL_ID) CF_ActivePanelId = 0;
+    if (CF_ActivePanelId[pid] == CRAFT_PANEL_ID) CF_ActivePanelId[pid] = 0;
 }
 
 
@@ -717,7 +726,7 @@ void InitCraftingSystemFrame() {
     Jass::TriggerAddAction(closeTrg, function() {
         int pid = Jass::GetPlayerId(Jass::GetTriggerPlayer());
         CB_Hide(pid);
-        if (CF_ActivePanelId == CRAFT_PANEL_ID) CF_ActivePanelId = 0;
+        if (CF_ActivePanelId[pid] == CRAFT_PANEL_ID) CF_ActivePanelId[pid] = 0;
     });
 
     // --- Grid page prev ---
@@ -810,5 +819,5 @@ void InitCraftingSystemFrame() {
     });
 
     // Регистрация в менеджере панелей
-    CF_RegisterPanel(CRAFT_PANEL_ID, @CB_HideAll);
+    CF_RegisterPanel(CRAFT_PANEL_ID, @CB_Hide);
 }

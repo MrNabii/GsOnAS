@@ -347,5 +347,5 @@ void InitPortalPath() {
     Jass::TimerStart(ppAiTimer, 7.0, true, @PP_MobTimerCallback);
     ppAiTimer = nil;
 
-    Jass::ConsolePrint("PortalPath system initialized, portals: " + Jass::I2S(PP_Count));
+    Jass::ConsolePrint("\nPortalPath system initialized, portals: " + Jass::I2S(PP_Count));
 }

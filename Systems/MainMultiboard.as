@@ -5,6 +5,8 @@ timer MB_UpdateTimer = nil;
 int MB_ElapsedSeconds = 0;
 int MB_BuffLuck = 0;
 array<int> MB_WaveReached(11);
+int MB_PlayerRowsCount = 0;
+array<int> MB_RowPlayerId(10);
 
 string MB_PlayerColor(int playerNumber1) {
     if (playerNumber1 == 1) return "|c00FF0000";
@@ -111,19 +113,20 @@ int MB_GetPlayerLuck(int playerNumber1, unit goblin) {
     return int(ud.totalStats.luck);
 }
 
+int MB_GetWaveNextTimeDisplay() {
+    return udg_Wave_next_time;
+}
+
 void MB_UpdatePlayersRows() {
-    int row = 1;
     int luckTeamSum = MB_BuffLuck;
 
-    for (int i = 1; i <= 10; i++) {
-        player p = Jass::Player(i - 1);
-        if (!Jass::IsPlayerInForce(p, PlayerForces)) {
-            p = nil;
-            continue;
-        }
+    for (int idx = 0; idx < MB_PlayerRowsCount; idx++) {
+        int pid = MB_RowPlayerId[idx];
+        int i = pid + 1;
+        int row = idx + 2;
 
-        row += 1;
-        unit u = GoblinUnit[i - 1];
+        player p = Jass::Player(pid);
+        unit u = GoblinUnit[pid];
         bool alive = MB_IsUnitAlive(u);
 
         string pName = Jass::GetPlayerName(p);
@@ -134,7 +137,7 @@ void MB_UpdatePlayersRows() {
                 MB_SetItemValue(2, row, Jass::I2S(i) + ". " + MB_PlayerColor(i) + pName + "|r");
             }
         } else {
-            MB_SetItemValue(2, row, "|c00999999" + pName + "|r");
+            MB_SetItemValue(2, row, Jass::I2S(i) + ". |c00999999" + pName + "|r");
         }
 
         if (u != nil) {
@@ -195,7 +198,7 @@ void MB_UpdatePlayersRows() {
         u = nil;
     }
 
-    int enemiesRow = g_ready_players + 3;
+    int enemiesRow = MB_PlayerRowsCount + 3;
     if (udg_wave_count == 0) {
         MB_SetItemValue(1, enemiesRow, "|c00FF0000Врагов: |r|c0080FF80" + Jass::I2S(udg_wave_count));
     } else if (udg_wave_count <= 30) {
@@ -205,22 +208,27 @@ void MB_UpdatePlayersRows() {
     } else {
         MB_SetItemValue(1, enemiesRow, "|c00FF0000Врагов: |r|c00FF0000" + Jass::I2S(udg_wave_count));
     }
-
-    if (udg_Wave_next_time > 0) {
-        MB_SetItemValue(2, enemiesRow,
-            Jass::I2S(udg_Wave_next_time) + "|c00AAFF00с. до волны |r " + Jass::I2S(udg_Wave_Number));
-    } else {
-        int waveState = 0;
-        int maxSpawns = WS_WaveMaxSpawns[udg_Wave_Number];
-        if (maxSpawns > 0) {
-            waveState = Jass::R2I(float(udg_Wave_count_spawns) / float(maxSpawns) * 100.0);
+    if(!GameStarted) {
+        MB_SetItemValue(2, enemiesRow, "|c0000AAFFОжидание начала игры...|r");
+    }
+    else {
+        int waveNextTime = MB_GetWaveNextTimeDisplay();
+        if (waveNextTime > 0) {
+            MB_SetItemValue(2, enemiesRow,
+                Jass::I2S(waveNextTime) + "|c00AAFF00с. до волны |r " + Jass::I2S(udg_Wave_Number));
+        } else {
+            int waveState = 0;
+            int maxSpawns = WS_WaveMaxSpawns[udg_Wave_Number];
+            if (maxSpawns > 0) {
+                waveState = Jass::R2I(float(udg_Wave_count_spawns) / float(maxSpawns) * 100.0);
+            }
+            if (waveState > 100) waveState = 100;
+            MB_SetItemValue(2, enemiesRow,
+                "|c00FF0000Волна: |r|c0080FF80" + Jass::I2S(udg_Wave_Number) + " (" + Jass::I2S(waveState) + "%)");
         }
-        if (waveState > 100) waveState = 100;
-        MB_SetItemValue(2, enemiesRow,
-            "|c00FF0000Волна: |r|c0080FF80" + Jass::I2S(udg_Wave_Number) + " (" + Jass::I2S(waveState) + "%)");
     }
 
-    int luckRow = g_ready_players + 4;
+    int luckRow = MB_PlayerRowsCount + 4;
     if (luckTeamSum > 40) {
         MB_SetItemValue(1, luckRow, "|c00FF8000Удача команды: |r40+");
     } else {
@@ -230,6 +238,7 @@ void MB_UpdatePlayersRows() {
 
 void MainMultiboardUpdate() {
     if (MainMulitboard == nil) return;
+    if (!GameStarted) return;
     MB_ElapsedSeconds += 1;
     MB_SetClockTitle();
     MB_UpdatePlayersRows();
@@ -265,16 +274,16 @@ void MainMultiboardApplyLayout() {
     MB_SetItemStyle(6, 1, false, true);
     MB_SetItemStyle(8, 1, false, true);
 
-    MB_SetItemStyle(1, g_ready_players + 3, true, false);
-    MB_SetItemStyle(1, g_ready_players + 4, true, false);
-    MB_SetItemStyle(1, g_ready_players + 5, true, false);
+    MB_SetItemStyle(1, MB_PlayerRowsCount + 3, true, false);
+    MB_SetItemStyle(1, MB_PlayerRowsCount + 4, true, false);
+    MB_SetItemStyle(1, MB_PlayerRowsCount + 5, true, false);
 
-    MB_SetItemWidth(1, g_ready_players + 3, 10.00);
-    MB_SetItemWidth(2, g_ready_players + 3, 10.00);
-    MB_SetItemWidth(1, g_ready_players + 4, 10.00);
-    MB_SetItemWidth(2, g_ready_players + 4, 10.00);
-    MB_SetItemWidth(1, g_ready_players + 5, 10.00);
-    MB_SetItemWidth(2, g_ready_players + 5, 10.00);
+    MB_SetItemWidth(1, MB_PlayerRowsCount + 3, 10.00);
+    MB_SetItemWidth(2, MB_PlayerRowsCount + 3, 10.00);
+    MB_SetItemWidth(1, MB_PlayerRowsCount + 4, 10.00);
+    MB_SetItemWidth(2, MB_PlayerRowsCount + 4, 10.00);
+    MB_SetItemWidth(1, MB_PlayerRowsCount + 5, 10.00);
+    MB_SetItemWidth(2, MB_PlayerRowsCount + 5, 10.00);
 
     MB_SetItemIcon(1, 1, "ReplaceableTextures\\WorldEditUI\\Editor-MultipleUnits.blp");
     MB_SetItemIcon(8, 1, "BTNClover.blp");
@@ -286,11 +295,11 @@ void MainMultiboardApplyLayout() {
     MB_SetItemValue(7, 1, "|c0000FFFFВолн|r");
 
     for (int col = 1; col <= 8; col++) {
-        MB_SetItemStyle(col, g_ready_players + 2, true, false);
-        MB_SetItemWidth(col, g_ready_players + 2, 0.0);
+        MB_SetItemStyle(col, MB_PlayerRowsCount + 2, true, false);
+        MB_SetItemWidth(col, MB_PlayerRowsCount + 2, 0.0);
     }
-    MB_SetItemWidth(1, g_ready_players + 2, 25.4);
-    MB_SetItemValue(1, g_ready_players + 2,
+    MB_SetItemWidth(1, MB_PlayerRowsCount + 2, 25.4);
+    MB_SetItemValue(1, MB_PlayerRowsCount + 2,
         "---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------");
 }
 
@@ -305,11 +314,21 @@ void InitMainMultiboardSystem() {
         MB_WaveReached[i] = 0;
     }
 
+    MB_PlayerRowsCount = 0;
+    for (int i = 0; i < 10; i++) {
+        player p = Jass::Player(i);
+        if (Jass::IsPlayerInForce(p, PlayerForces)) {
+            MB_RowPlayerId[MB_PlayerRowsCount] = i;
+            MB_PlayerRowsCount += 1;
+        }
+        p = nil;
+    }
+
     MB_ElapsedSeconds = 0;
     MainMulitboard = Jass::CreateMultiboard();
     MainMultiboard = MainMulitboard;
 
-    Jass::MultiboardSetRowCount(MainMulitboard, g_ready_players + 5);
+    Jass::MultiboardSetRowCount(MainMulitboard, MB_PlayerRowsCount + 5);
     Jass::MultiboardSetColumnCount(MainMulitboard, 8);
     Jass::MultiboardSetTitleText(MainMulitboard, "|c00FF8000Экспедиция гоблинов |r00:00:00");
     Jass::MultiboardDisplay(MainMulitboard, true);

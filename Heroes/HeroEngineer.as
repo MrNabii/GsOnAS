@@ -201,7 +201,6 @@ void W2_Cast(unit u, int abilId, int abilvl, unit target, float targX, float tar
         if(beacon != nil && (Jass::LoadInteger(SkillHT, Jass::GetHandleId(u), 'A0KS' + i) == 0 || Jass::LoadInteger(SkillHT, Jass::GetHandleId(u), 'A0KS' + i) == 2)) {
             Jass::SaveUnitHandle(SkillHT, Jass::GetHandleId(u), 'A0KS' + i, target);
             Jass::SaveInteger(SkillHT, Jass::GetHandleId(u), 'A0KS' + i, 1); // state=attached
-            Jass::SetUnitColor(beacon, Jass::GetPlayerColor(0));
             break;
         }
     }

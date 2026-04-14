@@ -52,8 +52,8 @@ item GetItemOfTypeFromUnitEx(unit whichUnit, int itemId) {
     }
 }
 
-item UnitAddItemByIdSwapped(int itemId, unit whichHero) {
-    item lastCreatedItem = Jass::CreateItem(itemId, Jass::GetUnitX(whichHero), Jass::GetUnitY(whichHero));
+item UnitAddItemByIdSwapped(int itemId, unit whichHero, int ownerPlayerId = -1) {
+    item lastCreatedItem = CreateRegisteredItem(itemId, Jass::GetUnitX(whichHero), Jass::GetUnitY(whichHero), ownerPlayerId);
     Jass::UnitAddItem(whichHero, lastCreatedItem);
     return lastCreatedItem;
 }
@@ -218,7 +218,11 @@ class CraftRecipe {
     // ─── Ownership: получить владельца предмета ───
     // 0 = общий, >0 = ID игрока (1-based) = личный
     int GetItemOwnership(item itm) {
-        return Jass::LoadInteger(UnitHandleHT, Jass::GetHandleId(itm), 'ownr');
+        int ownerPlayerId = GetItemOwnerPlayerId(itm);
+        if (ownerPlayerId > 0) {
+            return ownerPlayerId;
+        }
+        return 0;
     }
 
     // ═══════════════════════════════════════════════════════════════════════
@@ -327,13 +331,8 @@ class CraftRecipe {
                 GetItemOfTypeFromUnitEx(cUnit, ResultItem),
                 Jass::GetItemCharges(GetItemOfTypeFromUnitEx(cUnit, ResultItem)) + ResultItemCharges);
         } else {
-            item newItm = UnitAddItemByIdSwapped(ResultItem, cUnit);
+            item newItm = UnitAddItemByIdSwapped(ResultItem, cUnit, (craftingPlayerId > 0) ? craftingPlayerId : -1);
             Jass::SetItemCharges(newItm, ResultItemCharges);
-            if (craftingPlayerId > 0) {
-                Jass::SaveInteger(UnitHandleHT, Jass::GetHandleId(newItm), 'ownr', craftingPlayerId);
-            } else {
-                Jass::SetItemUserData(newItm, id);
-            }
             newItm = nil;
         }
         id = 0; index = 0;
@@ -351,13 +350,8 @@ class CraftRecipe {
                 GetItemOfTypeFromUnitEx(cUnit, ResultItem),
                 Jass::GetItemCharges(GetItemOfTypeFromUnitEx(cUnit, ResultItem)) + ResultItemCharges);
         } else {
-            item newItm = UnitAddItemByIdSwapped(ResultItem, cUnit);
+            item newItm = UnitAddItemByIdSwapped(ResultItem, cUnit, (craftingPlayerId > 0) ? craftingPlayerId : -1);
             Jass::SetItemCharges(newItm, ResultItemCharges);
-            if (craftingPlayerId > 0) {
-                Jass::SaveInteger(UnitHandleHT, Jass::GetHandleId(newItm), 'ownr', craftingPlayerId);
-            } else {
-                Jass::SetItemUserData(newItm, id);
-            }
             newItm = nil;
         }
         id = 0;
@@ -389,7 +383,7 @@ class CraftRecipe {
 
     void CheckItem(unit cUnit) {
         for (int i = 0; i < MAX_CRAFT_INGREDIENTS && ReqItems[i] > 0; i++) {
-            item itm = Jass::CreateItem(ReqItems[i], Jass::GetUnitX(cUnit), Jass::GetUnitY(cUnit));
+            item itm = CreateRegisteredItem(ReqItems[i], Jass::GetUnitX(cUnit), Jass::GetUnitY(cUnit));
             Jass::SetItemCharges(itm, RICount[i]);
         }
     }

@@ -23,6 +23,7 @@ timer WS_WaveTimer = nil;
 
 int WS_WaveMinik = 0;
 bool WS_Initialized = false;
+int WS_Pack_next_time = 0;
 
 // Состояние волн (AS-копия для удобной правки и использования в других AS-системах)
 int udg_Wave_Number = 1;
@@ -326,6 +327,8 @@ void WS_StartCurrentWave() {
     int wt = WS_WaveType[waveNum];
 
     WS_WaveMinik = 0;
+    WS_Pack_next_time = 0;
+    udg_WaveWait = false;
     udg_Wave_count_spawns = 1;
 
     if (waveNum >= 1 && waveNum < int(g_Text_Wave_Brif.length())) {
@@ -347,6 +350,8 @@ void WS_EndCurrentWave() {
     }
 
     WS_WaveMinik = 0;
+    WS_Pack_next_time = 0;
+    udg_WaveWait = false;
     udg_Wave_count_spawns = 0;
 
     udg_Wave_Number += 1;
@@ -389,11 +394,12 @@ void WS_ProcessCommonWave() {
 
         int nextTick = int(WS_WaveTickTimer[waveNum]);
         if (nextTick < 1) nextTick = 1;
-        udg_Wave_next_time = nextTick;
+        WS_Pack_next_time = nextTick;
         return;
     }
 
     if (udg_wave_count <= 0) {
+        udg_WaveWait = false;
         WS_EndCurrentWave();
     } else {
         udg_WaveWait = true;
@@ -422,6 +428,11 @@ void WS_OnTick() {
         return;
     }
 
+    if (WS_Pack_next_time > 0) {
+        WS_Pack_next_time -= 1;
+        return;
+    }
+
     int wt = WS_WaveType[udg_Wave_Number];
     if (WS_IsCommonWaveType(wt)) {
         WS_ProcessCommonWave();
@@ -444,6 +455,7 @@ void InitWaveSystemAS() {
     udg_Wave_Number_TP = 1;
     udg_Wave_Last = false;
     udg_wave_count = 0;
+    WS_Pack_next_time = 0;
     WS_WaveMinik = 0;
 
     if (WS_WaveTimer != nil) {
