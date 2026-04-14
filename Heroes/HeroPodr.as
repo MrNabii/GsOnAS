@@ -62,6 +62,7 @@ float T_d_mr_Duration2    = 6.0;      // длит. MR дебаффа (3 ур.)
 float T_d_mr2             = 0.0931;   // MR дебафф (3 ур.) ≈ T_d_mr1*1.33
 int   T_d_mr2_Then        = 200;      // скейлинг MR от INT (3 ур.)
 float T_Stun              = 1.0;      // стан (3 ур.)
+int   R_TimerParent       = 'PDRT';
 
 // ==================== Общая логика: вызывается при каждом скилле ====================
 
@@ -377,14 +378,43 @@ void R_Cast(unit u, int abilId, int abilvl, unit target, float targX, float targ
 // Перезарядка шашек (вызывается при инициализации героя)
 void R_AddCharges() {
     timer t = Jass::GetExpiredTimer();
-    unit u = Jass::LoadUnitHandle(SkillHT, Jass::GetHandleId(t), 0);
+    int th = Jass::GetHandleId(t);
+    unit u = Jass::LoadUnitHandle(SkillHT, th, 0);
+    int pid = Jass::LoadInteger(SkillHT, th, 1);
+
+    if (u == nil || Jass::GetUnitTypeId(u) == 0 || Jass::GetPlayerId(Jass::GetOwningPlayer(u)) != pid || Jass::GetUnitAbilityLevel(u, 'A19P') <= 0) {
+        Jass::RemoveSavedHandle(SkillHT, R_TimerParent, pid);
+        Jass::FlushChildHashtable(SkillHT, th);
+        Jass::DestroyTimer(t);
+        t = nil;
+        u = nil;
+        return;
+    }
+
     HSetAbilityCharges(u, 'A19P', HMinInt(HGetAbilityCharges(u, 'A19P') + 1, R_Stack));
+
+    t = nil;
+    u = nil;
 }
 
 void R_SetCharges(unit u) {
+    if (u == nil) return;
+
+    int pid = Jass::GetPlayerId(Jass::GetOwningPlayer(u));
+    timer existed = Jass::LoadTimerHandle(SkillHT, R_TimerParent, pid);
+    if (existed != nil) {
+        Jass::SaveUnitHandle(SkillHT, Jass::GetHandleId(existed), 0, u);
+        existed = nil;
+        return;
+    }
+
     timer t = Jass::CreateTimer();
-    Jass::SaveUnitHandle(SkillHT, Jass::GetHandleId(t), 0, u);
+    int th = Jass::GetHandleId(t);
+    Jass::SaveUnitHandle(SkillHT, th, 0, u);
+    Jass::SaveInteger(SkillHT, th, 1, pid);
+    Jass::SaveTimerHandle(SkillHT, R_TimerParent, pid, t);
     Jass::TimerStart(t, R_time, true, @R_AddCharges);
+    t = nil;
 }
 
 // ==================== T (A0KI) — Ядерная бомба ====================

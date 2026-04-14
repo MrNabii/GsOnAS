@@ -398,7 +398,7 @@ void WS_ProcessCommonWave() {
         return;
     }
 
-    if (udg_wave_count <= 0) {
+    if (udg_Wave_count_spawns > WS_WaveMaxSpawns[waveNum]) {
         udg_WaveWait = false;
         WS_EndCurrentWave();
     } else {

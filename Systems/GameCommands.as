@@ -276,7 +276,7 @@ void GC_OnChat() {
         }
 
         udg_KS_CanVote = true;
-        Jass::DisplayTextToPlayer(Jass::GetLocalPlayer(), 0, 0, "TRIGSTR_15417");
+        Jass::DisplayTextToPlayer(Jass::GetLocalPlayer(), 0, 0, "|cfffed312У вас есть 20 секунд что написать |r-да|cfffed312 или |r-нет");
 
         KS_Voted[udg_KS_KickPlayerNR] = true;
         KS_Voted[convertedPid] = true;
@@ -429,7 +429,7 @@ void GC_OnChat() {
                     DisplayTextToPlayers("|c00FF0000Теперь главой экспедиции является: |r" + Jass::GetPlayerName(target));
                 } else {
                     if (Jass::GetLocalPlayer() == chatPlayer) {
-                        Jass::DisplayTextToPlayer(Jass::GetLocalPlayer(), 0, 0, "TRIGSTR_411");
+                        Jass::DisplayTextToPlayer(Jass::GetLocalPlayer(), 0, 0, "|c000080FFДля передачи статуса лидера экспедиции необходимо указать верный номер игрока!|r");
                     }
                 }
                 target = nil;
@@ -452,9 +452,9 @@ void GC_OnChat() {
 
         if (GC_IsShortModeOnCmd(chatString) and !WS_ShortMode) {
             if (udg_Wave_Number == 0) {
-                DisplayTextToPlayers("TRIGSTR_494");
+                DisplayTextToPlayers("|c000080FFКоманда включится после начала первой волны.|r");
             } else {
-                DisplayTextToPlayers("TRIGSTR_495");
+                DisplayTextToPlayers("|c000080FFПредводитель экспедиции включил пропуск ожидания. Теперь перерыв между волнами сокращен до минимума (10 секунд).|r");
                 WS_ShortMode = true;
                 if (udg_Wave_next_time > 10) {
                     udg_Wave_next_time = 10;
@@ -464,7 +464,7 @@ void GC_OnChat() {
         }
 
         if (GC_IsShortModeOffCmd(chatString) and WS_ShortMode) {
-            DisplayTextToPlayers("TRIGSTR_496");
+            DisplayTextToPlayers("|c000080FFПредводитель экспедиции отключил пропуск ожидания. Теперь перерыв между волнами установлен на стандарт (200 секунд перед обычной волной и 120 перед волной с боссом).|r");
             WS_ShortMode = false;
             return;
         }
@@ -476,22 +476,22 @@ void GC_OnChat() {
 
         if (!GameStarted and GC_IsSkipCmd(chatString)) {
             if (SG_CanSkipStart()) {
-                DisplayTextToPlayers("TRIGSTR_500");
+                DisplayTextToPlayers("|c000080FFВсе игроки готовы к старту, игра начнется через 10 секунд.|r");
                 SG_SetStartTimerTo10();
             } else {
-                DisplayTextToPlayers("TRIGSTR_499");
+                DisplayTextToPlayers("|c000080FFИспользуйте эту команду когда все игроки выберут себе персонажа, чтобы запустить таймер старта.");
             }
             return;
         }
 
         if (!GameStarted and (chatString == "-time" or chatString == "-ешьу" or chatString == "-тайм")) {
-            DisplayTextToPlayers("TRIGSTR_501");
+            DisplayTextToPlayers("|c000080FFЛидер экспедиции отключил автоматический старт! Команда -notime включит таймер старта. Чтобы начать игру, когда все игроки выберут персонажа, используйте команду -skip.|r");
             SG_PauseStartTimer();
             return;
         }
 
         if (!GameStarted and (chatString == "-notime" or chatString == "-тщешьу" or chatString == "-нотайм")) {
-            DisplayTextToPlayers("TRIGSTR_502");
+            DisplayTextToPlayers("|c000080FFЛидер экспедиции включил авто-старт.|r");
             SG_ResumeStartTimer();
             return;
         }
@@ -524,7 +524,7 @@ void GC_OnChat() {
     }
 
     if (!GameStarted and GC_IsRepickCmd(chatString)) {
-        if (u != nil and Jass::GetUnitTypeId(u) != 0) {
+        if (u != nil) {
             x = Jass::GetUnitX(u);
             y = Jass::GetUnitY(u);
             Jass::DestroyEffect(Jass::AddSpecialEffect("Abilities\\Spells\\Human\\ThunderClap\\ThunderClapCaster.mdl", x, y));
@@ -559,15 +559,15 @@ void GC_OnChat() {
 
             Jass::GroupRemoveUnit(Goblinzz, u);
 
-            Jass::RemoveUnit(DamageDummy[convertedPid]);
-            Jass::RemoveUnit(GoblinUnit[convertedPid]);
+            Jass::RemoveUnit(DamageDummy[pid]);
+            Jass::RemoveUnit(GoblinUnit[pid]);
             //RemoveUnit(udg_Mara_unit[convertedPid]);
 
-            DamageDummy[convertedPid] = nil;
-            GoblinUnit[convertedPid] = nil;
+            DamageDummy[pid] = nil;
+            GoblinUnit[pid] = nil;
 
-            Jass::CreateUnit(chatPlayer, 'h088', -6528., 6832., 0.);
-            Jass::CreateUnit(chatPlayer, 'h08F', PlayerPickerPointX[convertedPid], PlayerPickerPointY[convertedPid], 0);
+            g_HeroTaker[pid] = Jass::CreateUnit(chatPlayer, 'h088', -6528., 6832., 0.);
+            g_HeroTaker2[pid] = Jass::CreateUnit(chatPlayer, 'h08F', PlayerPickerPointX[pid], PlayerPickerPointY[pid], 0);
             //SL_LOADED[convertedPid] = false;
         }
         return;
@@ -587,7 +587,7 @@ void GC_OnChat() {
         } else {
             if (Jass::GetLocalPlayer() == chatPlayer) {
                 Jass::DisplayTimedTextToPlayer(Jass::GetLocalPlayer(), 0, 0, 12.00, " ");
-                Jass::DisplayTimedTextToPlayer(Jass::GetLocalPlayer(), 0, 0, 12.00, "TRIGSTR_505");
+                Jass::DisplayTimedTextToPlayer(Jass::GetLocalPlayer(), 0, 0, 12.00, "|c00FF0000Укажите дистанцию от 1000 до 4000|r");
                 Jass::StartSound(questWarningSound);
             }
         }
@@ -667,7 +667,7 @@ void GC_OnChat() {
                 } else {
                     if (Jass::GetLocalPlayer() == chatPlayer) {
                         Jass::DisplayTimedTextToPlayer(Jass::GetLocalPlayer(), 0, 0, 12., " ");
-                        Jass::DisplayTimedTextToPlayer(Jass::GetLocalPlayer(), 0, 0, 12., "TRIGSTR_508");
+                        Jass::DisplayTimedTextToPlayer(Jass::GetLocalPlayer(), 0, 0, 12., "|c00FF0000Укажите корректное расстояние от 100 до 1500!|r");
                         Jass::StartSound(questWarningSound);
                     }
                 }

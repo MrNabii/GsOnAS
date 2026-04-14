@@ -197,13 +197,12 @@ void OnUnitDamaged() {
         if(srcData.isMinik) {
             finalDamage *= 0.7; // дополнительно 30% меньше урона для миников
         }
-        if(TargetCurrentHp <= finalDamage) { // если удар должен убить юнита
+        if(TargetCurrentHp <= finalDamage+3) { // если удар должен убить юнита
             if(Jass::GetUnitAbilityLevel(target, 'A05N') >= 3 && Jass::GetAbilityRemainingCooldown(Jass::GetUnitAbility(target, 'A05N')) <= 0) {
-                finalDamage *= 0.7; 
                 Jass::StartAbilityCooldown(Jass::GetUnitAbility(target, 'A05N'), 120);
+                Jass::SetUnitCurrentLife(target, Jass::GetUnitMaxLife(target)); // оставляем 1 HP, чтобы юнит не умер
+                finalDamage = 0;
             }
-            finalDamage = 0;
-            Jass::SetUnitCurrentLife(target, Jass::GetUnitMaxLife(target)); // оставляем 1 HP, чтобы юнит не умер
         }
     }
 

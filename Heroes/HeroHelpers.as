@@ -21,6 +21,7 @@ void IssuePointOrderEx1(unit u, string order, float x, float y, player p, float 
     Jass::UnitAddAbility(dummy, abi_to_add);
     Jass::SetUnitX(dummy, x);
     Jass::SetUnitY(dummy, y);
+    Jass::SetUnitCurrentSight(dummy, 120);
     Jass::UnitShareVision(dummy, Jass::GetOwningPlayer(u), true);
     Jass::UnitApplyTimedLife(dummy, 'BFig', lifetime);
     Jass::UnitShareVision(dummy, Jass::GetOwningPlayer(u), true);

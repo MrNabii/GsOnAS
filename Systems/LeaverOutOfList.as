@@ -175,11 +175,11 @@ void LOOL_CleanupOwnedUnits(player leaver) {
     LOOL_ReassignLeaverStructures(leaver);
 
     if (GameStarted) {
-        DisplayTextToPlayers("TRIGSTR_326");
+        DisplayTextToPlayers("|c00FF0000Последний раз гоблина видели здесь...|r");
     }
 
     if (LOOL_CountAliveGoblins() <= 0) {
-        DisplayTextToPlayers("TRIGSTR_008");
+        DisplayTextToPlayers("Все гоблины мертвы! Сохранитесь командой -save, и не забудьте посетить сайт нашей картостроительной Гильдии Goblin Workshop! - |c0000FF00http://goblinworkshop.ru|r,");
     }
 
     hero = nil;

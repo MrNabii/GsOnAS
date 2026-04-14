@@ -310,32 +310,35 @@ void E_Cast(unit u, int abilId, int abilvl, unit target, float targX, float targ
         s.resistAll = E_dr2;
         str += ", уменьшает получаемый урон на " + (E_dr2 * 100) + "%";
     }
-    group g = Jass::CreateGroup();
-    Jass::GroupEnumUnitsInRange(g, Jass::GetUnitX(u), Jass::GetUnitY(u), 500.0, nil);
-    Jass::GroupRemoveUnit(g, u); // исключить себя из группы
-    ForGroupAction(g, u, function(unit source, unit target) {
-        if (Jass::IsUnitAlly(target, Jass::GetOwningPlayer(source)) && Jass::IsUnitInGroup(target, Goblinzz)) {
-            UnitData@ ud = GetUnitData(source);
-            UnitStatsData s;
-            string str;
-            int abilvl = Jass::GetUnitAbilityLevel(source, 'A0M8');
-            s.Reset();
-            s.attackSpeedPct = E_CapAS;
-            str = "Увеличивает процент скорости атаки на " + (E_CapAS * 100) + "%";
-            if(abilvl == 2) {
-                s.resistAll = E_dr1;
-                str += ", уменьшает получаемый урон на " + (E_dr1 * 100) + "%";
+    if(abilvl == 3) {
+        group g = Jass::CreateGroup();
+        Jass::GroupEnumUnitsInRange(g, Jass::GetUnitX(u), Jass::GetUnitY(u), 500.0, nil);
+        Jass::GroupRemoveUnit(g, u); // исключить себя из группы
+        ForGroupAction(g, u, function(unit source, unit target) {
+            if (Jass::IsUnitAlly(target, Jass::GetOwningPlayer(source)) && Jass::IsUnitInGroup(target, Goblinzz)) {
+                UnitData@ ud = GetUnitData(target);
+                UnitStatsData s;
+                string str;
+                int abilvl = Jass::GetUnitAbilityLevel(source, 'A0M8');
+                s.Reset();
+                s.attackSpeedPct = E_CapAS;
+                str = "Увеличивает процент скорости атаки на " + (E_CapAS * 100) + "%";
+                if(abilvl == 2) {
+                    s.resistAll = E_dr1;
+                    str += ", уменьшает получаемый урон на " + (E_dr1 * 100) + "%";
+                }
+                if(abilvl == 3) {
+                    s.resistAll = E_dr2;
+                    str += ", уменьшает получаемый урон на " + (E_dr2 * 100) + "%";
+                }
+                Buff@ b = Buff("Рудокоп", str, "ReplaceableTextures\\CommandButtons\\BTNGatherGold_Vol3.blp",
+                'A0M8', 5., s, true, PURGE_NONE, 0, 0, true);
+                ud.AddBuff(b, target);
             }
-            if(abilvl == 3) {
-                s.resistAll = E_dr2;
-                str += ", уменьшает получаемый урон на " + (E_dr2 * 100) + "%";
-            }
-            Buff@ b = Buff("Рудокоп", str, "ReplaceableTextures\\CommandButtons\\BTNGatherGold_Vol3.blp",
-            'A0M8', 5., s, true, PURGE_NONE, 0, 0, true);
-            ud.AddBuff(b, target);
-        }
-    });
-    Jass::DestroyGroup(g);
+        });
+        Jass::DestroyGroup(g);
+    }
+    
     Buff@ b = Buff("Рудокоп", str, "ReplaceableTextures\\CommandButtons\\BTNGatherGold_Vol3.blp",
             'A0M8', 5., s, true, PURGE_NONE, 0, 0, true);
     ud.AddBuff(b, u);
@@ -478,14 +481,15 @@ void T_Start() {
     ApplyAuraToNearby(BunkerUnit[pn], "Аура Бункера", desc,
         "ReplaceableTextures\\CommandButtons\\BTNTrollBurrow.blp",
         'A01F', auraStats, true, 600.0, PURGE_NONE, 1);
-
-    Jass::SetPlayerAbilityAvailable(Jass::GetOwningPlayer(u), abilTypeId, false);
-    Jass::UnitAddAbility(u, 'A01A');
-    timer t2 = Jass::CreateTimer();
-    Jass::SaveUnitHandle(SkillHT, Jass::GetHandleId(t2), 0, u);
-    Jass::SaveInteger(SkillHT, Jass::GetHandleId(t2), 1, abilTypeId);
-    Jass::TimerStart(t2, T_Duration, false, @T_End);
-
+    if(abilvl >= 3) {
+        Jass::SetPlayerAbilityAvailable(Jass::GetOwningPlayer(u), abilTypeId, false);
+        Jass::UnitAddAbility(u, 'A01A');
+        timer t2 = Jass::CreateTimer();
+        Jass::SaveUnitHandle(SkillHT, Jass::GetHandleId(t2), 0, u);
+        Jass::SaveInteger(SkillHT, Jass::GetHandleId(t2), 1, abilTypeId);
+        Jass::TimerStart(t2, T_Duration, false, @T_End);
+    }
+    
     Jass::FlushChildHashtable(SkillHT, th);
     Jass::DestroyTimer(t);
 }
@@ -500,7 +504,7 @@ void T_Cast(unit u, int abilId, int abilvl, unit target, float targX, float targ
 
 void T2_Cast(unit u, int abilId, int abilvl, unit target, float targX, float targY, ability abil) {
     int pn = Jass::GetPlayerId(Jass::GetOwningPlayer(u));
-    UnitData@ ud = GetUnitData(u);
+    UnitData@ ud = GetUnitData(BunkerUnit[pn]);
     UnitStatsData s;
     string str;
     s.Reset();
@@ -508,8 +512,8 @@ void T2_Cast(unit u, int abilId, int abilvl, unit target, float targX, float tar
     str = "Увеличивает процент скорости атаки на " + (E_CapAS * 100) + "%";
     Buff@ b = Buff("Рудокоп", str, "ReplaceableTextures\\CommandButtons\\BTNFire.blp",
     'A01A', 5., s, true, PURGE_NONE, 0, 0, true);
-    ud.AddBuff(b, GoblinUnit[pn]);
-    Jass::UnitApplyTimedLife(GoblinUnit[pn], 'BTLF', 5.1);
+    ud.AddBuff(b, BunkerUnit[pn]);
+    Jass::UnitApplyTimedLife(BunkerUnit[pn], 'BTLF', 5.1);
 }
 
 // ==================== Регистрация ====================

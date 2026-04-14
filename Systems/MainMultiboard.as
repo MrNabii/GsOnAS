@@ -238,9 +238,10 @@ void MB_UpdatePlayersRows() {
 
 void MainMultiboardUpdate() {
     if (MainMulitboard == nil) return;
-    if (!GameStarted) return;
-    MB_ElapsedSeconds += 1;
-    MB_SetClockTitle();
+    if (GameStarted) {
+        MB_ElapsedSeconds += 1;
+        MB_SetClockTitle();
+    }
     MB_UpdatePlayersRows();
 }
 

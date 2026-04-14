@@ -702,11 +702,11 @@ void GameStart() {
     CreateQuestBJ( QUESTTYPE_OPT_DISCOVERED, "Молитва Гобу", g_strmsg[0], "ReplaceableTextures\\CommandButtons\\BTNStormEarth&Fire.blp" );
     CreateQuestBJ( QUESTTYPE_OPT_DISCOVERED, "Уровни персонажей и скиллов", g_strmsg[1], "ReplaceableTextures\\CommandButtons\\BTNSnazzyScroll.blp" );
     CreateQuestBJ( QUESTTYPE_OPT_DISCOVERED, "Бонусы от количества игроков", g_strmsg[2], "ReplaceableTextures\\CommandButtons\\BTNSnazzyScroll.blp" );
-    CreateQuestBJ( QUESTTYPE_OPT_DISCOVERED, "TRIGSTR_3588", g_strmsg[3], "BTNClover.blp" );
-    CreateQuestBJ( QUESTTYPE_OPT_DISCOVERED, "TRIGSTR_3592", g_strmsg[5], "ReplaceableTextures\\CommandButtons\\BTNSpy.blp" );
-    CreateQuestBJ( QUESTTYPE_OPT_DISCOVERED, "TRIGSTR_3671", g_strmsg[6], "ReplaceableTextures\\CommandButtons\\BTNSpy.blp" );
-    CreateQuestBJ( QUESTTYPE_OPT_DISCOVERED, "TRIGSTR_3672", g_strmsg[7], "ReplaceableTextures\\CommandButtons\\BTNBlacksmith.blp" );
-    CreateQuestBJ( QUESTTYPE_OPT_DISCOVERED, "TRIGSTR_3692", g_strmsg[9], "ReplaceableTextures\\CommandButtons\\BTNScroll.blp" );
+    CreateQuestBJ( QUESTTYPE_OPT_DISCOVERED, "Удача", g_strmsg[3], "BTNClover.blp" );
+    CreateQuestBJ( QUESTTYPE_OPT_DISCOVERED, "Команды для хоста", g_strmsg[5], "ReplaceableTextures\\CommandButtons\\BTNSpy.blp" );
+    CreateQuestBJ( QUESTTYPE_OPT_DISCOVERED, "Команды для всех", g_strmsg[6], "ReplaceableTextures\\CommandButtons\\BTNSpy.blp" );
+    CreateQuestBJ( QUESTTYPE_OPT_DISCOVERED, "Goblin Workshop", g_strmsg[7], "ReplaceableTextures\\CommandButtons\\BTNBlacksmith.blp" );
+    CreateQuestBJ( QUESTTYPE_OPT_DISCOVERED, "Записка из лагеря", g_strmsg[9], "ReplaceableTextures\\CommandButtons\\BTNScroll.blp" );
     
 
 

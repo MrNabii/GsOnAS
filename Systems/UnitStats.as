@@ -1882,6 +1882,200 @@ int FindItemSlot(unit u, item itm) {
     return -1;
 }
 
+dictionary CS_StackableItemTypes;
+bool CS_StackableItemTypesInitialized = false;
+item CS_AutoCollectTargetItem = nil;
+int CS_AutoCollectTypeId = 0;
+array<int> CS_NosUpgradeLevel(12);
+
+void CS_SetNosUpgradeLevel(player p, int level) {
+    if (p == nil) return;
+    int pid = Jass::GetPlayerId(p) + 1;
+    if (pid < 1 || pid >= int(CS_NosUpgradeLevel.length())) return;
+    CS_NosUpgradeLevel[pid] = level;
+}
+
+void CS_AddStackableItemType(int itemTypeId) {
+    CS_StackableItemTypes["" + itemTypeId] = true;
+}
+
+void CS_InitStackableItemTypes() {
+    if (CS_StackableItemTypesInitialized) return;
+
+    CS_AddStackableItemType('I0O5');
+    CS_AddStackableItemType('I0O6');
+    CS_AddStackableItemType('I0O7');
+    CS_AddStackableItemType('I0OU');
+    CS_AddStackableItemType('I0O4');
+    CS_AddStackableItemType('I0OE');
+    CS_AddStackableItemType('I0OA');
+    CS_AddStackableItemType('I0OT');
+    CS_AddStackableItemType('I0Q3');
+    CS_AddStackableItemType('I0Q2');
+    CS_AddStackableItemType('I0OB');
+    CS_AddStackableItemType('I0O0');
+    CS_AddStackableItemType('I0O1');
+    CS_AddStackableItemType('I0O2');
+    CS_AddStackableItemType('I0O3');
+    CS_AddStackableItemType('I0NW');
+    CS_AddStackableItemType('I0NX');
+    CS_AddStackableItemType('I0NY');
+    CS_AddStackableItemType('I0NZ');
+    CS_AddStackableItemType('I0OD');
+    CS_AddStackableItemType('I0OQ');
+    CS_AddStackableItemType('I0OR');
+    CS_AddStackableItemType('I0OS');
+    CS_AddStackableItemType('I0O8');
+    CS_AddStackableItemType('I0O9');
+    CS_AddStackableItemType('I0KE');
+    CS_AddStackableItemType('I0NB');
+    CS_AddStackableItemType('I0MQ');
+    CS_AddStackableItemType('I0MR');
+    CS_AddStackableItemType('I0KB');
+    CS_AddStackableItemType('I0CO');
+    CS_AddStackableItemType('I02D');
+    CS_AddStackableItemType('I0M6');
+    CS_AddStackableItemType('I0KF');
+    CS_AddStackableItemType('I0MA');
+    CS_AddStackableItemType('I0MB');
+    CS_AddStackableItemType('I0M7');
+    CS_AddStackableItemType('I0CW');
+    CS_AddStackableItemType('I0AK');
+    CS_AddStackableItemType('I038');
+    CS_AddStackableItemType('I09Z');
+    CS_AddStackableItemType('I0AB');
+    CS_AddStackableItemType('I0AC');
+    CS_AddStackableItemType('I0A6');
+    CS_AddStackableItemType('I0A5');
+    CS_AddStackableItemType('I0A4');
+    CS_AddStackableItemType('I0A3');
+    CS_AddStackableItemType('I0A2');
+    CS_AddStackableItemType('I0A1');
+    CS_AddStackableItemType('I0A0');
+    CS_AddStackableItemType('I09P');
+    CS_AddStackableItemType('I09I');
+    CS_AddStackableItemType('I09L');
+    CS_AddStackableItemType('I09Q');
+    CS_AddStackableItemType('I09M');
+    CS_AddStackableItemType('I09K');
+    CS_AddStackableItemType('I09O');
+    CS_AddStackableItemType('I09W');
+    CS_AddStackableItemType('I09X');
+    CS_AddStackableItemType('I09S');
+    CS_AddStackableItemType('I09R');
+    CS_AddStackableItemType('I09V');
+    CS_AddStackableItemType('I09Y');
+    CS_AddStackableItemType('I061');
+    CS_AddStackableItemType('I062');
+    CS_AddStackableItemType('I001');
+    CS_AddStackableItemType('I000');
+    CS_AddStackableItemType('I002');
+    CS_AddStackableItemType('I003');
+    CS_AddStackableItemType('I00W');
+    CS_AddStackableItemType('I00V');
+    CS_AddStackableItemType('I00U');
+    CS_AddStackableItemType('I00T');
+    CS_AddStackableItemType('I008');
+    CS_AddStackableItemType('I007');
+    CS_AddStackableItemType('I01T');
+    CS_AddStackableItemType('I01U');
+    CS_AddStackableItemType('I01V');
+    CS_AddStackableItemType('I01W');
+    CS_AddStackableItemType('I01X');
+    CS_AddStackableItemType('I024');
+    CS_AddStackableItemType('I02T');
+    CS_AddStackableItemType('I036');
+    CS_AddStackableItemType('I037');
+    CS_AddStackableItemType('I03I');
+    CS_AddStackableItemType('I047');
+    CS_AddStackableItemType('I050');
+    CS_AddStackableItemType('I04Y');
+    CS_AddStackableItemType('I052');
+    CS_AddStackableItemType('I04Z');
+    CS_AddStackableItemType('I051');
+    CS_AddStackableItemType('I04X');
+    CS_AddStackableItemType('I066');
+    CS_AddStackableItemType('I0CQ');
+    CS_AddStackableItemType('I02F');
+    CS_AddStackableItemType('I02E');
+    CS_AddStackableItemType('I02C');
+    CS_AddStackableItemType('I02B');
+    CS_AddStackableItemType('I02K');
+    CS_AddStackableItemType('I048');
+    CS_AddStackableItemType('I123');
+
+    CS_StackableItemTypesInitialized = true;
+}
+
+bool CS_IsStackableItemType(int itemTypeId) {
+    CS_InitStackableItemTypes();
+    return CS_StackableItemTypes.exists("" + itemTypeId);
+}
+
+bool CS_IsUnitNos(unit u) {
+    int typeId = Jass::GetUnitTypeId(u);
+    return typeId == 'h02N'
+        || typeId == 'h033'
+        || typeId == 'h03B'
+        || typeId == 'h03H'
+        || typeId == 'h03P'
+        || typeId == 'h03Q'
+        || typeId == 'h047'
+        || typeId == 'h04C';
+}
+
+bool CS_HasAutoCollectUpgrade(unit u) {
+    if (!CS_IsUnitNos(u)) return false;
+    int pid = Jass::GetPlayerId(Jass::GetOwningPlayer(u)) + 1;
+    if (pid >= 1 && pid < int(CS_NosUpgradeLevel.length()) && CS_NosUpgradeLevel[pid] >= 2) {
+        return true;
+    }
+    return Jass::GetUnitAbilityLevel(u, 'A114') > 0;
+}
+
+item CS_FindSameItemInInventory(unit u, item excluded, int itemTypeId) {
+    for (int i = 0; i < 18; i++) {
+        item slotItm = Jass::UnitItemInSlot(u, i);
+        if (slotItm != nil && slotItm != excluded && Jass::GetItemTypeId(slotItm) == itemTypeId) {
+            return slotItm;
+        }
+    }
+    return nil;
+}
+
+void CS_EnumNearbyItemsForStack() {
+    item enumItem = Jass::GetEnumItem();
+    if (enumItem == nil || CS_AutoCollectTargetItem == nil) {
+        enumItem = nil;
+        return;
+    }
+
+    if (enumItem != CS_AutoCollectTargetItem && Jass::GetItemTypeId(enumItem) == CS_AutoCollectTypeId) {
+        int totalCharges = Jass::GetItemCharges(CS_AutoCollectTargetItem) + Jass::GetItemCharges(enumItem);
+        Jass::SetItemCharges(CS_AutoCollectTargetItem, totalCharges);
+        Jass::RemoveItem(enumItem);
+    }
+
+    enumItem = nil;
+}
+
+void CS_AutoCollectNearbySameItems(unit u, item stackTarget, int itemTypeId) {
+    if (u == nil || stackTarget == nil) return;
+
+    float x = Jass::GetUnitX(u);
+    float y = Jass::GetUnitY(u);
+    rect rc = Jass::Rect(x - 325.0, y - 325.0, x + 325.0, y + 325.0);
+
+    CS_AutoCollectTargetItem = stackTarget;
+    CS_AutoCollectTypeId = itemTypeId;
+    Jass::EnumItemsInRect(rc, nil, @CS_EnumNearbyItemsForStack);
+
+    CS_AutoCollectTargetItem = nil;
+    CS_AutoCollectTypeId = 0;
+    Jass::RemoveRect(rc);
+    rc = nil;
+}
+
 void OnItemPickup() {
     unit u = Jass::GetTriggerUnit();
     item itm = Jass::GetManipulatedItem();
@@ -1892,6 +2086,31 @@ void OnItemPickup() {
 
     int slot = FindItemSlot(u, itm);
     if (slot < 0) { u = nil; itm = nil; return; }
+
+    if (CS_IsStackableItemType(itemTypeId)) {
+        item existingStack = CS_FindSameItemInInventory(u, itm, itemTypeId);
+
+        if (existingStack != nil) {
+            int totalCharges = Jass::GetItemCharges(existingStack) + Jass::GetItemCharges(itm);
+            Jass::SetItemCharges(existingStack, totalCharges);
+            Jass::RemoveItem(itm);
+
+            if (CS_HasAutoCollectUpgrade(u)) {
+                CS_AutoCollectNearbySameItems(u, existingStack, itemTypeId);
+            }
+
+            existingStack = nil;
+            u = nil;
+            itm = nil;
+            return;
+        }
+
+        if (CS_HasAutoCollectUpgrade(u)) {
+            CS_AutoCollectNearbySameItems(u, itm, itemTypeId);
+        }
+
+        existingStack = nil;
+    }
 
     ItemStats@ itmStats = RegisterItemInstance(itm, -1, slot);
     if (itmStats is null) { u = nil; itm = nil; return; }

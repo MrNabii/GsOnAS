@@ -13,8 +13,8 @@ array<float> PlayerPickerPointY(12);
 #include "MainPart.as"
 
 void config() {
-    Jass::SetMapName("TRIGSTR_001");
-    Jass::SetMapDescription("TRIGSTR_000");
+    Jass::SetMapName("|c0080FF00Goblin Survival|rv1.6a64");
+    Jass::SetMapDescription("Примите вызов и пройдите все волны в этой гоблинской выживалке с системой save/load. Версия с использованием UjAPI. Версия 365\n.Заходи в дискорд: discord.gg/TFstGynfdy");
     Jass::SetPlayers(12);
     Jass::SetTeams(2);
     Jass::SetGamePlacement(Jass::MAP_PLACEMENT_USE_MAP_SETTINGS);

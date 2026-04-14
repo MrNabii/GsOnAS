@@ -68,6 +68,16 @@ void SG_PrepareHero(unit hero, int playerIndex) {
     SG_EnsureStarterItems(hero, playerIndex);
 }
 
+unit SG_CreateHeroForPlayer(player p) {
+    int pid = Jass::GetPlayerId(p);
+    if (pid < 0 || pid >= 10) return nil;
+    int random = Jass::GetRandomInt(0, 1);
+    int unitTypeId = (random == 0) ? 'N000' : 'H002'; // Создается Медик или Инженер, выбор рандомный
+    unit hero = Jass::CreateUnit(p, unitTypeId, -6528., 6832., 0.);
+    GoblinUnit[pid] = hero;
+    return hero;
+}
+
 int SG_CountReadyHeroes() {
     int ready = 0;
 
@@ -135,7 +145,10 @@ void SG_FinalizeStartNow() {
         }
 
         unit hero = GoblinUnit[i];
-        if (hero != nil && Jass::GetUnitTypeId(hero) != 0) {
+        if (hero == nil) {
+            hero = SG_CreateHeroForPlayer(p);
+        }
+        if (hero != nil) {
             SG_PrepareHero(hero, i);
         }
 
@@ -146,7 +159,7 @@ void SG_FinalizeStartNow() {
     SG_ApplyWaveStartState();
 
     GameStarted = true;
-    DisplayTextToPlayers("TRIGSTR_382");
+    DisplayTextToPlayers("                                               |c0000FF40Подождите... Генерируем пещеру.");
 }
 
 void SG_OnStartTimerExpired() {
