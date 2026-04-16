@@ -522,7 +522,7 @@ void InitPodrSkills() {
     RegisterAbilityCastHandler('A1A2', @E_Cast);
     RegisterAbilityCastHandler('A19P', @R_Cast);
     RegisterAbilityCastHandler('A0KI', @T_Cast);
-    Jass::ConsolePrint("Podr skills initialized.");
+    Debug("InitPodrSkills", "Podr skills initialized.");
 }
 
 } // namespace Podr

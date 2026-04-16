@@ -201,7 +201,7 @@ void InitSniperSkills() {
     RegisterAbilityCastHandler('A0TW', @R_Cast);
     // E(A0UG) — пассив, не регистрируется как каст
     // T(A0UK) — TODO: сложный ультиматив
-    Jass::ConsolePrint("Sniper skills initialized.");
+    Debug("InitSniperSkills", "Sniper skills initialized.");
 }
 
 } // namespace Sniper

@@ -1,3 +1,16 @@
+bool DebugEnabled = true;
+
+void Debug(string functionName, string message) {
+    if (!DebugEnabled) return;
+
+    int len = Jass::StringLength(message);
+    if (len > 0 && Jass::SubString(message, 0, 1) == "\n") {
+        message = Jass::SubString(message, 1, len);
+    }
+
+    Jass::ConsolePrint("\n[" + functionName + "] " + message);
+}
+
 bool IsUnitEngineer(unit u) {
     return Jass::GetUnitTypeId(u) == 'N000' || Jass::GetUnitTypeId(u) == 'N100';
 }

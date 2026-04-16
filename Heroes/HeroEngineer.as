@@ -286,8 +286,8 @@ void E_OnAttack(unit attacker, unit target) {
     StunUnit(target, E_Stun);
     // 2 ур.: бонусный спелл-урон
     unit hero = attacker;
-    Jass::ConsolePrint("\nE_OnAttack triggered by " + Jass::GetUnitName(attacker) + " on " + Jass::GetUnitName(target));
-    Jass::ConsolePrint("\nE_OnAttack AbilityLevel: " + Jass::GetUnitAbilityLevel(attacker, 'A0M8'));
+    Debug("E_OnAttack", "\nE_OnAttack triggered by " + Jass::GetUnitName(attacker) + " on " + Jass::GetUnitName(target));
+    Debug("E_OnAttack", "\nE_OnAttack AbilityLevel: " + Jass::GetUnitAbilityLevel(attacker, 'A0M8'));
     if (Jass::GetUnitAbilityLevel(hero, 'A0M8') >= 2) {
         float dmg = float(Jass::GetHeroInt(hero, true)) * E_int;
         HDealSpellDmg(hero, target, dmg);
@@ -499,7 +499,7 @@ void T_Cast(unit u, int abilId, int abilvl, unit target, float targX, float targ
     int th = Jass::GetHandleId(t);
     Jass::SaveUnitHandle(SkillHT, th, 0, u);
     Jass::SaveInteger(SkillHT, th, 1, Jass::GetAbilityTypeId(abil));
-    Jass::TimerStart(t, 0.01, false, @T_Start);
+    Jass::TimerStart(t, 0.1, false, @T_Start);
 }
 
 void T2_Cast(unit u, int abilId, int abilvl, unit target, float targX, float targY, ability abil) {
@@ -617,7 +617,7 @@ void InitEngineerSkills() {
     RegisterAbilityCastHandler('A01F', @T_Cast);
     RegisterAbilityCastHandler('A01A', @T2_Cast);
     InitEngineerSkillTexts();
-    Jass::ConsolePrint("Engineer skills initialized.");
+    Debug("InitEngineerSkills", "Engineer skills initialized.");
 }
 
 } // namespace Engineer

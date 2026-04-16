@@ -401,7 +401,7 @@ void InitPulikSkills() {
     RegisterAbilityCastHandler('A0P7', @E2_Cast);
     RegisterAbilityCastHandler('A19Z', @R_Cast);
     RegisterAbilityCastHandler('A0CS', @T_Cast);
-    Jass::ConsolePrint("Pulik skills initialized.");
+    Debug("InitPulikSkills", "Pulik skills initialized.");
 }
 
 } // namespace Pulik

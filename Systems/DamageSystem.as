@@ -51,6 +51,41 @@ void RegisterOnHit(OnHitCallbackFn@ cb) {
     if (cb !is null) OnHitCallbacks.insertLast(@cb);
 }
 
+bool DS_IsUnitMedicHero(unit u) {
+    if (u == nil) return false;
+    int id = Jass::GetUnitTypeId(u);
+    return id == 'H002' || id == 'H102';
+}
+
+unit DS_FindReadyMedicSaver(unit target) {
+    if (target == nil) return nil;
+
+    unit result = nil;
+    group g = Jass::CreateGroup();
+    Jass::GroupEnumUnitsInRange(g, Jass::GetUnitX(target), Jass::GetUnitY(target), 750.0, nil);
+    unit u2 = Jass::FirstOfGroup(g);
+    while (u2 != nil) {
+        Jass::GroupRemoveUnit(g, u2);
+        if (Jass::IsUnitAlive(u2)
+            && DS_IsUnitMedicHero(u2)
+            && Jass::IsUnitAlly(u2, Jass::GetOwningPlayer(target))
+            && Jass::GetUnitAbilityLevel(u2, 'A19L') >= 3) {
+            ability medUlt = Jass::GetUnitAbility(u2, 'A19L');
+            if (medUlt != nil && Jass::GetAbilityRemainingCooldown(medUlt) <= 0.01) {
+                result = u2;
+                medUlt = nil;
+                break;
+            }
+            medUlt = nil;
+        }
+        u2 = Jass::FirstOfGroup(g);
+    }
+    Jass::DestroyGroup(g);
+    g = nil;
+
+    return result;
+}
+
 // ---------- Расчёт урона ----------
 
 // Рассчитать финальный урон с учётом модификаторов (без армора — его считает WC3)
@@ -153,7 +188,7 @@ void OnUnitDamaged() {
             CreateRegisteredItem(ItemTypeId, Jass::GetUnitX(source), Jass::GetUnitY(source));
         }
         float randomChance = Jass::GetRandomReal(0, 100);
-        Jass::ConsolePrint("\nRandom Chance for Bonus Item: " + Jass::R2S(randomChance) + "% (Luck: " + Jass::R2S(srcData.totalStats.luck) + ")");
+        Debug("OnUnitDamaged", "\nRandom Chance for Bonus Item: " + Jass::R2S(randomChance) + "% (Luck: " + Jass::R2S(srcData.totalStats.luck) + ")");
         if(randomChance < Engineer::E_ChanceStart * (srcData.totalStats.luck/Engineer::E_ChanceLuck + 1)) {
             int RandomItem = Jass::GetRandomInt(1, 6);
             if(RandomItem == 1) {
@@ -194,7 +229,7 @@ void OnUnitDamaged() {
             finalDamage *= 0.7; // 30% меньше урона, если есть хотя бы 1 заряд от R   
             HSetAbilityCharges(target, 'A05N', 0);
         }
-        if(srcData.isMinik) {
+        if(srcData !is null && srcData.isMinik) {
             finalDamage *= 0.7; // дополнительно 30% меньше урона для миников
         }
         if(TargetCurrentHp <= finalDamage+3) { // если удар должен убить юнита
@@ -203,6 +238,49 @@ void OnUnitDamaged() {
                 Jass::SetUnitCurrentLife(target, Jass::GetUnitMaxLife(target)); // оставляем 1 HP, чтобы юнит не умер
                 finalDamage = 0;
             }
+        }
+    }
+
+    // Медик T3: спасение отмеченной цели и автоспас рядом с медиком с готовой ультой.
+    if (finalDamage > 0 && TargetCurrentHp <= finalDamage + 3) {
+        int targetHandle = Jass::GetHandleId(target);
+        bool wasSaved = false;
+
+        if (Jass::LoadInteger(SkillHT, targetHandle, 'A0SZ') == 1) {
+            unit saver = Jass::LoadUnitHandle(SkillHT, targetHandle, 'A19K');
+            if (saver != nil
+                && Jass::IsUnitAlive(saver)
+                && Jass::IsUnitAlly(saver, Jass::GetOwningPlayer(target))
+                && Jass::LoadInteger(SkillHT, Jass::GetHandleId(saver), 'A0SZ') > 0) {
+                Jass::SaveInteger(SkillHT, Jass::GetHandleId(saver), 'A0SZ', 0);
+                Jass::RemoveSavedInteger(SkillHT, targetHandle, 'A0SZ');
+                Jass::RemoveSavedHandle(SkillHT, targetHandle, 'A19K');
+                Jass::UnitRemoveAbility(target, 'A0SZ');
+                Jass::SetUnitCurrentLife(target, Jass::GetUnitMaxLife(target));
+                Jass::DestroyEffect(Jass::AddSpecialEffectTarget(
+                    "Abilities\\Spells\\Human\\Resurrect\\ResurrectTarget.mdl", target, "origin"));
+                Debug("OnUnitDamaged", "Medic T3 save consumed: target=" + Jass::GetUnitName(target) + ", saver=" + Jass::GetUnitName(saver));
+                finalDamage = 0;
+                wasSaved = true;
+            }
+            saver = nil;
+        }
+
+        if (!wasSaved) {
+            unit med = DS_FindReadyMedicSaver(target);
+            if (med != nil) {
+                ability medUlt = Jass::GetUnitAbility(med, 'A19L');
+                if (medUlt != nil) {
+                    Jass::StartAbilityCooldown(medUlt, 60.0);
+                }
+                Jass::SetUnitCurrentLife(target, Jass::GetUnitMaxLife(target));
+                Jass::DestroyEffect(Jass::AddSpecialEffectTarget(
+                    "Abilities\\Spells\\Human\\Resurrect\\ResurrectTarget.mdl", target, "origin"));
+                Debug("OnUnitDamaged", "Medic auto-save triggered: target=" + Jass::GetUnitName(target) + ", medic=" + Jass::GetUnitName(med));
+                finalDamage = 0;
+                medUlt = nil;
+            }
+            med = nil;
         }
     }
 
@@ -224,7 +302,7 @@ void OnUnitDamaged() {
 
 
     Jass::SetEventDamage(finalDamage);
-    Jass::ConsolePrint("\nDealing damage: " + finalDamage + " from " + ((source != nil) ? Jass::GetUnitName(source) : "nil") + " to " + ((target != nil) ? Jass::GetUnitName(target) : "nil"));
+    Debug("OnUnitDamaged", "\nDealing damage: " + finalDamage + " from " + ((source != nil) ? Jass::GetUnitName(source) : "nil") + " to " + ((target != nil) ? Jass::GetUnitName(target) : "nil"));
 
 
 
@@ -299,7 +377,7 @@ void DealDamage(unit source, unit target, float amount, damagetype dmgType, Dama
         gDmg_RealSource = source;
         gDmg_Amount     = amount;
         @gDmg_Callback  = null;
-        Jass::ConsolePrint("\nDealing trigger damage: " + amount + " from " + ((DamageDummy[pid] != nil) ? Jass::GetUnitName(DamageDummy[pid]) : "nil") + " to " + ((target != nil) ? Jass::GetUnitName(target) : "nil"));
+        Debug("DealDamage", "\nDealing trigger damage: " + amount + " from " + ((DamageDummy[pid] != nil) ? Jass::GetUnitName(DamageDummy[pid]) : "nil") + " to " + ((target != nil) ? Jass::GetUnitName(target) : "nil"));
         Jass::UnitDamageTarget(DamageDummy[pid], target, amount, true, false,
         atcType, dmgType, Jass::WEAPON_TYPE_WHOKNOWS);
 
@@ -323,5 +401,5 @@ void InitDamageSystem() {
         Jass::TriggerRegisterPlayerUnitEvent(trg, Jass::Player(i), Jass::EVENT_PLAYER_UNIT_DAMAGED, nil);
     Jass::TriggerAddAction(trg, @OnUnitDamaged);
     trg = nil;
-    Jass::ConsolePrint("Damage system initialized.");
+    Debug("InitDamageSystem", "Damage system initialized.");
 }

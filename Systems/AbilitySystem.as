@@ -21,19 +21,29 @@
 
 
 void A004_Active(unit caster, int abilityId, int abilityLevel, unit target, float targX, float targY, ability abil) {
-    Jass::ConsolePrint("A004 casted by " + Jass::GetUnitName(caster));
+    Debug("A004_Active", "A004 casted by " + Jass::GetUnitName(caster));
 }
 
 void InitSkillAbilities() {
+	Debug("InitSkillAbilities", "Registering hero ability handlers");
     RegisterAbilityCastHandler('A004', @A004_Active);
+	Debug("InitSkillAbilities", "Init Piro skills");
     Piro::InitPiroSkills();
+	Debug("InitSkillAbilities", "Init Stalker skills");
     Stalker::InitStalkerSkills();
+	Debug("InitSkillAbilities", "Init Sniper skills");
     Sniper::InitSniperSkills();
+	Debug("InitSkillAbilities", "Init Roket skills");
     Roket::InitRoketSkills();
+	Debug("InitSkillAbilities", "Init Podr skills");
     Podr::InitPodrSkills();
+	Debug("InitSkillAbilities", "Init Medic skills");
     Medic::InitMedicSkills();
+	Debug("InitSkillAbilities", "Init Pulik skills");
     Pulik::InitPulikSkills();
+	Debug("InitSkillAbilities", "Init Engineer skills");
     Engineer::InitEngineerSkills();
+	Debug("InitSkillAbilities", "All hero handlers registered");
     //RegisterAbilityCastHandler('A0A2', @A0A2_Active);
     //RegisterAbilityCastHandler('A0AL', @A0AL_Active);
     //RegisterAbilityCastHandler('A0BC', @A0BC_Active);   
@@ -72,6 +82,7 @@ trigger g_AbilityCastTrigger;
 // Регистрация обработчика для способности
 void RegisterAbilityCastHandler(int abilityId, AbilityCastCallback@ cb) {
 	if (cb is null) return;
+	Debug("RegisterAbilityCastHandler", "abilityId=" + Jass::I2S(abilityId));
 	g_AbilityCastHandlers["" + abilityId] = @cb;
 }
 
@@ -85,7 +96,7 @@ void OnAnyAbilityCast() {
 	float targY = Jass::GetSpellTargetY();
 	ability abil = Jass::GetSpellAbility();
 	string key = "" + abilId;
-    Jass::ConsolePrint("Ability cast: " + Jass::GetUnitName(caster) + " casted ability ID " + key);
+    Debug("OnAnyAbilityCast", "Ability cast: " + Jass::GetUnitName(caster) + " casted ability ID " + key);
 	if (g_AbilityCastHandlers.exists(key)) {
 		AbilityCastCallback@ cb = cast<AbilityCastCallback@>(g_AbilityCastHandlers[key]);
 		if (cb !is null) {
@@ -112,6 +123,7 @@ void InitAbilityCastSystem() {
 	Jass::TriggerAddAction(g_AbilityCastTrigger, @OnAnyAbilityCast);
 
     InitSkillAbilities();
+	Debug("InitAbilityCastSystem", "Ability cast trigger initialized");
 }
 
 // Инициализация всех скилловых обработчиков    

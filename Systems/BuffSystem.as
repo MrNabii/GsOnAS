@@ -248,12 +248,12 @@ void InitBuffSystem() {
         unit u = Jass::GetTriggerUnit();
         Selectedunit[Jass::GetPlayerId(Jass::GetTriggerPlayer())] = u;
         // TODO: обработка выделения юнита (u)
-        Jass::ConsolePrint("\nSelected: " + Jass::GetUnitName(u));
+        Debug("InitBuffSystem", "\nSelected: " + Jass::GetUnitName(u));
     });
     Jass::TriggerAddAction(trgDeselect, function() {
         Selectedunit[Jass::GetPlayerId(Jass::GetTriggerPlayer())] = nil;
         // TODO: обработка снятия выделения юнита (u)
-        Jass::ConsolePrint("\nDeselected: " );
+        Debug("InitBuffSystem", "\nDeselected: " );
     });
 
     Jass::TimerStart(Jass::CreateTimer(), 0.33, true, function() {
@@ -292,7 +292,7 @@ void InitBuffSystem() {
             }
         }
     });
-    Jass::ConsolePrint("\nBuffSystemInitialized");
+    Debug("InitBuffSystem", "\nBuffSystemInitialized");
 }
 
 Buff@ GetUnitBuff(unit u, int TypeId) {
@@ -425,7 +425,7 @@ void TestBuffSystem_AddBuff(unit u) {
     string key = "" + Jass::GetHandleId(u);
     UnitData@ ud;
     if (!UnitDataMap.get(key, @ud)) {
-        Jass::ConsolePrint("\n[Test] UnitData not found");
+        Debug("TestBuffSystem_AddBuff", "\n[Test] UnitData not found");
         return;
     }
 
@@ -438,7 +438,7 @@ void TestBuffSystem_AddBuff(unit u) {
         "ReplaceableTextures\\CommandButtons\\BTNDivineIntervention.blp",
         'tb01', 15.0, buffStats, true, PURGE_NORMAL, 1, 3, true);
     ud.AddBuff(testBuff, u);
-    Jass::ConsolePrint("\n[Test] Buff added: Благословение, dur=15, stack=3");
+    Debug("TestBuffSystem_AddBuff", "\n[Test] Buff added: Благословение, dur=15, stack=3");
 
     // Test 2: дебафф
     UnitStatsData debuffStats;
@@ -449,7 +449,7 @@ void TestBuffSystem_AddBuff(unit u) {
         "ReplaceableTextures\\CommandButtons\\BTNCurse.blp",
         'td01', 10.0, debuffStats, false, PURGE_NORMAL, 1, 0, true);
     ud.AddBuff(testDebuff, u);
-    Jass::ConsolePrint("\n[Test] Debuff added: Проклятие, dur=10");
+    Debug("TestBuffSystem_AddBuff", "\n[Test] Debuff added: Проклятие, dur=10");
 
     // Test 3: бессрочный бафф
     UnitStatsData permStats;
@@ -459,7 +459,7 @@ void TestBuffSystem_AddBuff(unit u) {
         "ReplaceableTextures\\CommandButtons\\BTNResistantSkin.blp",
         'tp01', -1.0, permStats, true, PURGE_NONE, 1, 0, true);
     ud.AddBuff(permBuff, u);
-    Jass::ConsolePrint("\n[Test] Permanent buff added: Стойкость");
+    Debug("TestBuffSystem_AddBuff", "\n[Test] Permanent buff added: Стойкость");
 }
 
 void TestBuffSystem_Aura(unit src) {
@@ -473,7 +473,7 @@ void TestBuffSystem_Aura(unit src) {
     ApplyAuraToNearby(src, "Аура защиты", "+3 защиты, +2 реген ХП союзникам",
         "ReplaceableTextures\\CommandButtons\\BTNDevotion.blp",
         'ta01', auraStats, true, 600.0, PURGE_NONE, 1);
-    Jass::ConsolePrint("\n[Test] Aura applied: radius=600");
+    Debug("TestBuffSystem_Aura", "\n[Test] Aura applied: radius=600");
 }
 
 void TestBuffSystem_Stacks(unit u) {
@@ -495,12 +495,12 @@ void TestBuffSystem_Stacks(unit u) {
             if (ud.buffs[i].buffTypeId == 'ts01') {
                 ud.buffs[i].stack += 1;
                 ud.buffs[i].duration = 8.0; // обновить длительность
-                Jass::ConsolePrint("\n[Test] Stack increased to " + Jass::I2S(ud.buffs[i].stack));
+                Debug("TestBuffSystem_Stacks", "\n[Test] Stack increased to " + Jass::I2S(ud.buffs[i].stack));
                 break;
             }
         }
     } else {
         ud.AddBuff(stackBuff, u);
-        Jass::ConsolePrint("\n[Test] Stack buff added: Ярость, stack=1");
+        Debug("TestBuffSystem_Stacks", "\n[Test] Stack buff added: Ярость, stack=1");
     }
 }

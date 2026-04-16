@@ -440,7 +440,7 @@ void InitRoketSkills() {
     RegisterAbilityCastHandler('A010', @E_Cast);
     RegisterAbilityCastHandler('A01Y', @R_Cast);
     RegisterAbilityCastHandler('A0S9', @T_Cast);
-    Jass::ConsolePrint("Roket skills initialized.");
+    Debug("InitRoketSkills", "Roket skills initialized.");
 }
 
 } // namespace Roket

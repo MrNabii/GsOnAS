@@ -348,7 +348,7 @@ void InitStalkerSkills() {
     RegisterAbilityCastHandler('A0TM', @W_Cast);
     RegisterAbilityCastHandler('A0C9', @Q1_Cast);
     RegisterAbilityCastHandler('A0KP', @Q2_Cast);
-    Jass::ConsolePrint("Stalker skills initialized.");
+    Debug("InitStalkerSkills", "Stalker skills initialized.");
 }
 
 } // namespace Stalker

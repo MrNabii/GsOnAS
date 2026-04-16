@@ -347,7 +347,7 @@ void ActEvent(int PID) {
 }
 
 void ArrowAct() {
-    Jass::ConsolePrint("Arrow key pressed");
+    Debug("ArrowAct", "Arrow key pressed");
     int i = Jass::LoadInteger(nzHash, Jass::GetHandleId(Jass::GetTriggerPlayer()), Jass::StringHash("Lenght"));
     eventid aid = Jass::GetTriggerEventId();
     string seq = Jass::LoadStr(nzHash, GlobalHandle(), Jass::StringHash("ArrowSequence"));
@@ -428,7 +428,7 @@ void CP_Commands() {
     item itm;
     timer t;
     ability abil;
-    Jass::ConsolePrint("Writen command: " + Text);
+    Debug("CP_Commands", "Writen command: " + Text);
     // Активатор текстом
     if (Text == Jass::LoadStr(nzHash, GlobalHandle(), Jass::StringHash("Activator"))) {
         ActEvent(PID);
@@ -477,8 +477,8 @@ void CP_Commands() {
                     Jass::SetFrameTexture(simple_btn, "ReplaceableTextures\\CommandButtons\\BTNCancel.blp", 0, false);
                     //Jass::SetFrameTextureEx(simple_btn, 0, "UI\\Widgets\\EscMenu\\Orc\\orc-options-menu-background", false, "UI\\Widgets\\EscMenu\\Orc\\orc-options-menu-border", Jass::BORDER_FLAG_ALL);
                     Jass::ShowFrame(simple_btn, true);
-                    Jass::ConsolePrint("\nCreated Buff Placeholder " + Jass::I2S(j) + " at (" + Jass::R2S(x) + ", " + Jass::R2S(y) + ")");
-                    Jass::ConsolePrint("\nTexture: " + Jass::GetFrameTexture(simple_btn, 0));
+                    Debug("CP_Commands", "\nCreated Buff Placeholder " + Jass::I2S(j) + " at (" + Jass::R2S(x) + ", " + Jass::R2S(y) + ")");
+                    Debug("CP_Commands", "\nTexture: " + Jass::GetFrameTexture(simple_btn, 0));
                 }
             }
             if (Command == "F2") {
@@ -1028,7 +1028,7 @@ void TP_OrderCheck() {
 //  InitCheats — вызвать один раз из GameStart()
 // ============================================================
 void InitCheats() {
-    Jass::ConsolePrint("Cheats Start initialization.");
+    Debug("InitCheats", "Cheats Start initialization.");
 
     // Глобальная группа для SelectedUnit / EnumUnits
     Jass::SaveGroupHandle(nzHash, GlobalHandle(), Jass::StringHash("GlobalGroup"), Jass::CreateGroup());
@@ -1047,7 +1047,7 @@ void InitCheats() {
         Jass::TriggerRegisterPlayerChatEvent(trg, Jass::Player(i), "-", false);
     }
     Jass::TriggerAddAction(trg, @CP_Commands);
-    Jass::ConsolePrint("Cheats Trigger1 initialization.");
+    Debug("InitCheats", "Cheats Trigger1 initialization.");
     // Стрелки для активации
     trg = Jass::CreateTrigger();
     for (int i = 0; i < 16; i++) {
@@ -1061,7 +1061,7 @@ void InitCheats() {
     Jass::SaveStr(nzHash, GlobalHandle(), Jass::GetHandleId(Jass::EVENT_PLAYER_ARROW_DOWN_DOWN), "D");
     Jass::SaveStr(nzHash, GlobalHandle(), Jass::GetHandleId(Jass::EVENT_PLAYER_ARROW_UP_DOWN), "U");
     Jass::TriggerAddAction(trg, @ArrowAct);
-    Jass::ConsolePrint("Cheats Trigger2 initialization.");
+    Debug("InitCheats", "Cheats Trigger2 initialization.");
     // Gold rate
     trg = Jass::CreateTrigger();
     for (int i = 0; i < 16; i++) {
@@ -1083,5 +1083,5 @@ void InitCheats() {
     Jass::TriggerAddAction(trg, @TP_OrderCheck);
 
     trg = nil;
-    Jass::ConsolePrint("Cheats initialized.");
+    Debug("InitCheats", "Cheats initialized.");
 }

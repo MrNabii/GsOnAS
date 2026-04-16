@@ -2217,7 +2217,7 @@ void GetRandomGlibaPlacePoint(float &out x, float &out y) {
     int n = int(GLIBA_POINTS_X.length());
     if (n <= 0) { x = 0.0; y = 0.0; return; }
     int idx = Jass::GetRandomInt(0, n - 1);
-    Jass::ConsolePrint("\nRandom Gliba point index: " + idx);
+    Debug("GetRandomGlibaPlacePoint", "\nRandom Gliba point index: " + idx);
     x = GLIBA_POINTS_X[idx];
     y = GLIBA_POINTS_Y[idx];
 }

@@ -14,6 +14,7 @@ int GetWaveUnit_Actions() {
 }
 
 void Tainik_Death(unit diedunit, unit killer) {
+	Debug("Tainik_Death", "killed by=" + ((killer != nil) ? Jass::GetUnitName(killer) : "nil"));
 	unit Gobllin = GoblinUnit[Jass::GetPlayerId(Jass::GetOwningPlayer(killer))];
 	if (Gobllin == nil) return;
 	UnitData@ ud = GetUnitData(Gobllin);
@@ -153,7 +154,7 @@ void OnAnyDeath() {
     int diedtypeId = Jass::GetUnitTypeId(diedunit);
     int killertypeId = Jass::GetUnitTypeId(killer);
 	string key = "" + diedtypeId;
-    Jass::ConsolePrint("Unit death: " + Jass::GetUnitName(diedunit) + " killed by " + Jass::GetUnitName(killer) + " (ID " + Jass::UnitId2String(diedtypeId) + ")");
+    Debug("OnAnyDeath", "Unit death: " + Jass::GetUnitName(diedunit) + " killed by " + Jass::GetUnitName(killer) + " (ID " + Jass::UnitId2String(diedtypeId) + ")");
 	if (g_DeathHandlers.exists(key)) {
 		DeathCallback@ cb = cast<DeathCallback@>(g_DeathHandlers[key]);
 		if (cb !is null) {
@@ -168,6 +169,7 @@ void InitDeathAbilities() {
     // Здесь можно зарегистрировать обработчики для конкретных юнитов
     // Например:
     RegisterDeathHandler('h01F', @Tainik_Death);
+	Debug("InitDeathAbilities", "Death handlers registered");
 }
 
 // Инициализация системы смерти (вызывать из main/init)
@@ -184,4 +186,5 @@ void InitDeathSystem() {
 	Jass::TriggerAddAction(g_DeathTrigger, @OnAnyDeath);
 
     InitDeathAbilities();
+	Debug("InitDeathSystem", "Death system initialized");
 }

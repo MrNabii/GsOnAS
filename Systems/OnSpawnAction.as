@@ -12,6 +12,7 @@ dictionary g_OnSpawnHandlers;
 // Регистрация обработчика для способности
 void RegisterOnSpawnHandler(int abilityId, OnSpawnCallback@ cb) {
 	if (cb is null) return;
+    Debug("RegisterOnSpawnHandler", "unitTypeId=" + Jass::I2S(abilityId));
 	g_OnSpawnHandlers["" + abilityId] = @cb;
 }
 
@@ -25,13 +26,16 @@ int OSA_STALKER_E_TIMER_PARENT = 'OSE0';
 void OSA_ApplyHeroItemOwnership(unit u) {
     int ownerPlayerId = Jass::GetPlayerId(Jass::GetOwningPlayer(u)) + 1;
     int invSize = Jass::UnitInventorySize(u);
+    int assigned = 0;
     for (int slot = 0; slot < invSize; slot++) {
         item it = Jass::UnitItemInSlot(u, slot);
         if (it == nil) continue;
         SetItemOwner(it, ownerPlayerId);
         Jass::SetItemDroppable(it, false);
+        assigned += 1;
         it = nil;
     }
+    Debug("OSA_ApplyHeroItemOwnership", "hero=" + Jass::GetUnitName(u) + ", assigned=" + Jass::I2S(assigned));
 }
 
 void OSA_StalkerEChargeTick() {
@@ -41,6 +45,7 @@ void OSA_StalkerEChargeTick() {
     int pid = Jass::LoadInteger(SkillHT, th, 1);
 
     if (u == nil || Jass::GetUnitTypeId(u) == 0 || Jass::GetPlayerId(Jass::GetOwningPlayer(u)) != pid) {
+        Debug("OSA_StalkerEChargeTick", "stop timer for pid=" + Jass::I2S(pid));
         Jass::RemoveSavedHandle(SkillHT, OSA_STALKER_E_TIMER_PARENT, pid);
         Jass::FlushChildHashtable(SkillHT, th);
         Jass::DestroyTimer(t);
@@ -55,6 +60,7 @@ void OSA_StalkerEChargeTick() {
         int charges = HGetAbilityCharges(u, 'A0OR');
         if (charges < maxCharges) {
             HSetAbilityCharges(u, 'A0OR', charges + 1);
+            Debug("OSA_StalkerEChargeTick", "hero=" + Jass::GetUnitName(u) + ", charges=" + Jass::I2S(charges + 1));
         }
     }
 
@@ -79,6 +85,7 @@ void OSA_StartStalkerECharge(unit u) {
     int pid = Jass::GetPlayerId(Jass::GetOwningPlayer(u));
     timer existed = Jass::LoadTimerHandle(SkillHT, OSA_STALKER_E_TIMER_PARENT, pid);
     if (existed != nil) {
+        Debug("OSA_StartStalkerECharge", "refresh existing timer for hero=" + Jass::GetUnitName(u));
         Jass::SaveUnitHandle(SkillHT, Jass::GetHandleId(existed), 0, u);
         existed = nil;
         return;
@@ -92,6 +99,7 @@ void OSA_StartStalkerECharge(unit u) {
     Jass::SaveInteger(SkillHT, th, 1, pid);
     Jass::SaveTimerHandle(SkillHT, OSA_STALKER_E_TIMER_PARENT, pid, t);
     Jass::TimerStart(t, 0.10, false, @OSA_StalkerEChargeTick);
+    Debug("OSA_StartStalkerECharge", "start timer for hero=" + Jass::GetUnitName(u) + ", pid=" + Jass::I2S(pid));
     t = nil;
 }
 
@@ -102,6 +110,7 @@ void OSA_PiroA00XPassiveTick() {
     int pid = Jass::LoadInteger(SkillHT, th, 1);
 
     if (u == nil || Jass::GetUnitTypeId(u) == 0 || Jass::GetPlayerId(Jass::GetOwningPlayer(u)) != pid) {
+        Debug("OSA_PiroA00XPassiveTick", "stop timer for pid=" + Jass::I2S(pid));
         Jass::RemoveSavedHandle(SkillHT, 'A00X', pid * 10);
         Jass::FlushChildHashtable(SkillHT, th);
         Jass::DestroyTimer(t);
@@ -143,6 +152,7 @@ void OSA_StartPiroA00XPassive(unit u) {
         Jass::SaveInteger(SkillHT, th, 1, pid);
         Jass::SaveTimerHandle(SkillHT, 'A00X', pid * 10, t);
         Jass::TimerStart(t, 1.0, true, @OSA_PiroA00XPassiveTick);
+        Debug("OSA_StartPiroA00XPassive", "start passive timer for hero=" + Jass::GetUnitName(u));
         t = nil;
     }
 
@@ -157,14 +167,17 @@ void OSA_StartPiroA00XPassive(unit u) {
         startCharges = 0;
     }
     HSetAbilityCharges(u, 'A00X', startCharges);
+    Debug("OSA_StartPiroA00XPassive", "set start charges=" + Jass::I2S(startCharges) + " for hero=" + Jass::GetUnitName(u));
 }
 
 void InitHeroSkills(unit u) {
     if (u == nil || !Jass::IsUnitHero(u)) return;
     if (Jass::GetUnitTypeId(u) == 'h04I' || Jass::IsUnitIllusion(u)) return;
+    Debug("InitHeroSkills", "init for hero=" + Jass::GetUnitName(u));
 
     int pid = Jass::GetPlayerId(Jass::GetOwningPlayer(u));
     if (pid < 0 || pid >= 10) return;
+    Debug("InitHeroSkills", "hero pid=" + Jass::I2S(pid));
 
     Jass::RemoveUnit(g_HeroTaker[pid]);
     Jass::RemoveUnit(g_HeroTaker2[pid]);
@@ -195,6 +208,7 @@ void OnUnitEnterMap() {
     if (g_OnSpawnHandlers.exists(key)) {
 		OnSpawnCallback@ cb = cast<OnSpawnCallback@>(g_OnSpawnHandlers[key]);
 		if (cb !is null) {
+			Debug("OnUnitEnterMap", "dispatch spawn callback type=" + Jass::UnitId2String(typeId));
 			cb(u);
 		}
 	}
@@ -202,6 +216,7 @@ void OnUnitEnterMap() {
     if(Jass::IsUnitHero(u) && !Jass::IsUnitIllusion(u) && Jass::GetUnitTypeId(u) != 'h04I' && Jass::GetPlayerId(Jass::GetOwningPlayer(u)) < 10) {
         GoblinUnit[Jass::GetPlayerId(Jass::GetOwningPlayer(u))] = u;
         Jass::GroupAddUnit(Goblinzz, u);
+        Debug("OnUnitEnterMap", "hero registered=" + Jass::GetUnitName(u));
         InitHeroSkills(u);
     }
 
@@ -211,7 +226,7 @@ void OnUnitEnterMap() {
         if(typeId == g_Gliba[i]) {
             Jass::GroupAddUnit(Ores, u);
             Gliba_Counter++;
-            Jass::ConsolePrint("\nGliba Counter: " + Gliba_Counter);
+            Debug("OnUnitEnterMap", "\nGliba Counter: " + Gliba_Counter);
             if(Gliba_Counter <= 5) {
                 ud.OreType = 0;
             } else if(Gliba_Counter <= 9) {
@@ -235,6 +250,7 @@ void OnUnitEnterMap() {
         ud.dummyDamage = HGetUnitAD(GoblinUnit[pn]) * 0.65;
         ud.dmgType = Jass::DAMAGE_TYPE_MAGIC;
         ud.IsDummy = true;
+        Debug("OnUnitEnterMap", "bunker configured for player=" + Jass::I2S(pn));
     }
     u = nil;
 }
@@ -253,4 +269,5 @@ void InitSpawnTrigger() {
     BunkerUnit.resize(10);
     Goblinzz = Jass::CreateGroup();
     Ores = Jass::CreateGroup();
+    Debug("InitSpawnTrigger", "Spawn enter-region trigger initialized");
 }

@@ -287,7 +287,7 @@ class UnitData {
             }
         }
         buffs.insertLast(b);
-        Jass::ConsolePrint("\n[AddBuff] Buff added");
+        Debug("AddBuff", "\n[AddBuff] Buff added" + Jass::Id2String(b.buffTypeId) + " to unit " + Jass::GetUnitName(u) + ", duration=" + Jass::R2S(b.duration) + ", level=" + Jass::I2S(b.level));
         if (buffs.length() == 1) {
             // если это первый бафф, запускаем таймер для тика
             if(buffTimer == nil) buffTimer = Jass::CreateTimer();
@@ -300,7 +300,7 @@ class UnitData {
                     ud.TickBuffs(0.33, u);
                 else
                 {
-                    Jass::ConsolePrint("Error: UnitData not found for unit in Buff Timer Tick, Registering Unit");
+                    Debug("AddBuff", "Error: UnitData not found for unit in Buff Timer Tick, Registering Unit");
                     RegisterUnit(u);
                 }
                     
@@ -429,12 +429,12 @@ class UnitData {
         int heroClass = (baseTpl !is null) ? baseTpl.heroClass : 0;
         dictionary stackCount; // подсчёт по itemTypeId
         for (uint i = 0; i < items.length(); i++) {
-            if (items[i].slot < 0 || items[i].slot > 5) { Jass::ConsolePrint("[Recalc] skip slot=" + Jass::I2S(items[i].slot)); continue; }
+            if (items[i].slot < 0 || items[i].slot > 5) { Debug("Recalc", "[Recalc] skip slot=" + Jass::I2S(items[i].slot)); continue; }
             // Проверка уровня (lvl=1 — без ограничения)
-            if (items[i].itemLevel > 1 && heroLvl < items[i].itemLevel) { Jass::ConsolePrint("[Recalc] skip lvl=" + Jass::I2S(items[i].itemLevel)); continue; }
+            if (items[i].itemLevel > 1 && heroLvl < items[i].itemLevel) { Debug("Recalc", "[Recalc] skip lvl=" + Jass::I2S(items[i].itemLevel)); continue; }
             // Проверка класса
             if (items[i].allowedClass != 0 && heroClass != 0) {
-                if ((items[i].allowedClass & heroClass) == 0) { Jass::ConsolePrint("[Recalc] skip class=" + Jass::I2S(items[i].allowedClass)); continue; }
+                if ((items[i].allowedClass & heroClass) == 0) { Debug("Recalc", "[Recalc] skip class=" + Jass::I2S(items[i].allowedClass)); continue; }
             }
             // Проверка стакабельности
             if (items[i].maxStack > 0) {
@@ -442,10 +442,10 @@ class UnitData {
                 int cnt = 0;
                 if (stackCount.exists(sKey))
                     stackCount.get(sKey, cnt);
-                if (cnt >= items[i].maxStack) { Jass::ConsolePrint("[Recalc] skip stack cnt=" + Jass::I2S(cnt) + " max=" + Jass::I2S(items[i].maxStack)); continue; }
+                if (cnt >= items[i].maxStack) { Debug("Recalc", "[Recalc] skip stack cnt=" + Jass::I2S(cnt) + " max=" + Jass::I2S(items[i].maxStack)); continue; }
                 stackCount.set(sKey, cnt + 1);
             }
-            Jass::ConsolePrint("[Recalc] ADD item typeId=" + Jass::I2S(items[i].itemTypeId) + " str=" + Jass::R2S(items[i].stats.strength));
+            Debug("Recalc", "[Recalc] ADD item typeId=" + Jass::I2S(items[i].itemTypeId) + " str=" + Jass::R2S(items[i].stats.strength));
             totalStats.Add(items[i].stats);
         }
 
@@ -1813,6 +1813,7 @@ UnitData@ GetUnitData(unit u) {
 void RegisterUnit(unit u) {
     string key = "" + Jass::GetHandleId(u);
     if (UnitDataMap.exists(key)) return;
+    Debug("RegisterUnit", "register unit=" + Jass::GetUnitName(u) + ", type=" + Jass::UnitId2String(Jass::GetUnitTypeId(u)));
     UnitData ud;
     ud.baseStats.Reset();
 
@@ -1838,6 +1839,7 @@ void RegisterUnit(unit u) {
 }
 
 void UnregisterUnit(unit u) {
+    Debug("UnregisterUnit", "unregister unit=" + Jass::GetUnitName(u));
     string key = "" + Jass::GetHandleId(u);
     Jass::FlushChildHashtable(UnitHandleHT, Jass::GetHandleId(u));
     UnitDataMap.delete(key);
@@ -2131,7 +2133,7 @@ void OnItemPickup() {
     if (GetItemTemplate(itemTypeId) is null) { u = nil; itm = nil; return; }
 
     itmStats.slot = slot;
-    Jass::ConsolePrint("\nOnItemPickup: unit=" + Jass::GetUnitName(u) + ", item=" + Jass::GetItemName(itm));
+    Debug("OnItemPickup", "\nOnItemPickup: unit=" + Jass::GetUnitName(u) + ", item=" + Jass::GetItemName(itm));
     ud.AddItem(itmStats, u); // Recalc внутри, проверки уровня/класса/стака в Recalc
     u = nil;
     itm = nil;
@@ -2145,7 +2147,7 @@ void SetItemOwner(item itm, int playerId) {
 void OnItemDrop() {
     unit u = Jass::GetTriggerUnit();
     item itm = Jass::GetManipulatedItem();
-    Jass::ConsolePrint("\nOnItemDrop: unit=" + Jass::GetUnitName(u) + ", item=" + Jass::GetItemName(itm));
+    Debug("OnItemDrop", "\nOnItemDrop: unit=" + Jass::GetUnitName(u) + ", item=" + Jass::GetItemName(itm));
     UnitData@ ud = GetUnitData(u);
     if (ud is null) { u = nil; itm = nil; return; }
 
@@ -2168,4 +2170,5 @@ void InitItemTriggers() {
     Jass::TriggerAddAction(trg_ItemDrop,   @OnItemDrop);
     trg_ItemPickup = nil;
     trg_ItemDrop = nil;
+    Debug("InitItemTriggers", "Item pickup/drop triggers initialized");
 }

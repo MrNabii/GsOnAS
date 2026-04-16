@@ -5,9 +5,9 @@ trigger GC_AntiBotTrigger = nil;
 trigger GC_NoffTrigger = nil;
 hashtable SH = Jass::InitHashtable();
 
-force ADEPTS;
-force INKVISITION;
-force KS_KickedPlayers;
+force ADEPTS = Jass::CreateForce();
+force INKVISITION = Jass::CreateForce();
+force KS_KickedPlayers = Jass::CreateForce();
 
 array<bool> AliveGoblin(12);
 array<bool> KS_Voted(11);
@@ -249,7 +249,7 @@ void GC_OnChat() {
 
     GC_HandleKickVote(chatString, chatPlayer, convertedPid);
 
-    Jass::ConsolePrint("Chat command: " + chatString + " from player " + Jass::GetPlayerName(chatPlayer));
+    Debug("GC_OnChat", "Chat command: " + chatString + " from player " + Jass::GetPlayerName(chatPlayer));
 
     if (Jass::SubString(chatString, 0, 5) == "-kick" or Jass::SubString(chatString, 0, 4) == "-кик") {
         if (udg_KS_CanVote) {
@@ -787,4 +787,5 @@ void InitGameCommandsAS() {
         PlayerHaveConsole[i] = false;
     }
     Jass::TriggerAddAction(GC_NoffTrigger, @GC_OnNoffAttacked);
+    Debug("InitGameCommandsAS", "Chat and anti-bot command triggers initialized");
 }

@@ -14,11 +14,11 @@
 //import Systems\\WavesMobs.as
 //import Systems\\MainMultiboard.as
 
-rect mapInitialPlayableArea;
+rect mapInitialPlayableArea = nil;
 array<int> g_Gliba(10);
 hashtable UnitHandleHT = Jass::InitHashtable();  // хранит unit handle по handleId
-player Admin_Player;
-timer GameStartTimer;
+player Admin_Player = nil;
+timer GameStartTimer = nil;
 
 #include "General.as"
 #include "Systems\\AbilitySystem.as"
@@ -40,8 +40,8 @@ timer GameStartTimer;
 bool GameStarted = false;
 array<int> MapVersion(100);
 bool TestDebugMode = true;
-force PlayerForces;
-force EnemiesForce;
+force PlayerForces = nil;
+force EnemiesForce = nil;
 int ALLIANCE_ALLIED = 2;
 sound questWarningSound = Jass::CreateSoundFromLabel("Warning", false, false, false, 10000, 10000);
 sound questHintSound = Jass::CreateSoundFromLabel("Hint", false, false, false, 10000, 10000);
@@ -100,8 +100,8 @@ array<rect> udg_MushroomsRects(100);
 array<float> udg_SplashX(100);
 array<float> udg_SplashY(100);
 int  QUESTTYPE_OPT_DISCOVERED = 2;
-int TainiksCounter;
-int GlibasCounter;
+int TainiksCounter = 0;
+int GlibasCounter = 0;
 int g_ready_players = 0;
 void InitArrayValues() {    
     udg_UpTraderSpawnLocX[1] = -6704.;
@@ -635,7 +635,7 @@ void SpawnInitResources() {
 
 void TestAllPoints() {
     timer t = Jass::CreateTimer();
-    float h = Jass::GetHandleId(t);
+    int h = Jass::GetHandleId(t);
     Jass::SaveReal(SkillHT, h, 0, getMinRectX());
     Jass::SaveReal(SkillHT, h, 1, getMinRectY());
     Jass::TimerStart(t, 0.001, true, function() {
@@ -654,16 +654,17 @@ void TestAllPoints() {
         }
         if (IsPlaceableAtById(x, y)) {
             Jass::TextFileWriteLine(file, "Placeable at x: " + x + " y: " + y);
-            Jass::ConsolePrint("\nPlaceable at x: " + x + " y: " + y);
+            Debug("TestAllPoints", "\nPlaceable at x: " + x + " y: " + y);
         }
         Jass::TextFileClose(file);
     });
     
 }
 
-player FirstPlayer;
+player FirstPlayer = nil;
 
 void GameStart() {
+    Debug("GameStart", "GameStart begin");
 
     MapVersion[0] = 300;
     MapVersion[1] = 310;
@@ -712,6 +713,7 @@ void GameStart() {
 
 
     mapInitialPlayableArea = Jass::Rect(Jass::GetCameraBoundMinX()-Jass::GetCameraMargin(CAMERA_MARGIN_LEFT), Jass::GetCameraBoundMinY()-Jass::GetCameraMargin(CAMERA_MARGIN_BOTTOM), Jass::GetCameraBoundMaxX()+Jass::GetCameraMargin(CAMERA_MARGIN_RIGHT), Jass::GetCameraBoundMaxY()+Jass::GetCameraMargin(CAMERA_MARGIN_TOP));
+    Debug("GameStart", "Map bounds prepared");
     if(TestDebugMode) Jass::ConsoleEnable(true);
     PlayerForces = Jass::CreateForce();
     EnemiesForce = Jass::CreateForce();
@@ -723,6 +725,7 @@ void GameStart() {
         }
     }
     Admin_Player = FirstPlayer;
+    Debug("GameStart", "Admin player=" + ((Admin_Player != nil) ? Jass::GetPlayerName(Admin_Player) : "nil"));
     Jass::ForceAddPlayer(EnemiesForce, Jass::Player(10));
     Jass::ForceAddPlayer(EnemiesForce, Jass::Player(11));
     Jass::ForceAddPlayer(EnemiesForce, Jass::Player(13));
@@ -778,28 +781,50 @@ void GameStart() {
         }
     }
 
+    Debug("GameStart", "Init step: SG_InitStartTimer");
     SG_InitStartTimer();
+    Debug("GameStart", "Init step: InitBaseStats");
     InitBaseStats();
+    Debug("GameStart", "Init step: InitItemTemplates");
     InitItemTemplates();
+    Debug("GameStart", "Init step: InitItemDescriptions");
     InitItemDescriptions();
+    Debug("GameStart", "Init step: InitItemTriggers");
     InitItemTriggers();
+    Debug("GameStart", "Init step: InitSpawnTrigger");
     InitSpawnTrigger();
+    Debug("GameStart", "Init step: InitDeathSystem");
     InitDeathSystem();
+    Debug("GameStart", "Init step: InitAbilityCastSystem");
     InitAbilityCastSystem();
+    Debug("GameStart", "Init step: InitDamageSystem");
     InitDamageSystem();
+    Debug("GameStart", "Init step: SpawnInitResources");
     SpawnInitResources();
+    Debug("GameStart", "Init step: InitGameCommandsAS");
     InitGameCommandsAS();
+    Debug("GameStart", "Init step: InitLeaverOutOfListAS");
     InitLeaverOutOfListAS();
+    Debug("GameStart", "Init step: InitPortalPath");
     InitPortalPath();
+    Debug("GameStart", "Init step: InitWaveSystemAS");
     InitWaveSystemAS();
+    Debug("GameStart", "Init step: InitMainMultiboardSystem");
     InitMainMultiboardSystem();
+    Debug("GameStart", "Init step: InitCraftingSystem");
     InitCraftingSystem();
+    Debug("GameStart", "Init step: InitBuffSystem");
     InitBuffSystem();
+    Debug("GameStart", "Init step: InitCraftingSystemFrame");
     InitCraftingSystemFrame();
-    if(TestDebugMode) InitCheats();
-    Jass::ConsolePrint("\nGameStartCompleted");
+    if(TestDebugMode) {
+        Debug("GameStart", "Init step: InitCheats");
+        InitCheats();
+    }
+    Debug("GameStart", "\nGameStartCompleted");
 }
 
 void MainPart() {
+    Debug("MainPart", "MainPart timer scheduled");
     Jass::TimerStart(Jass::CreateTimer(), 0.1, false, @GameStart ) ;
 }

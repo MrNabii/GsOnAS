@@ -352,7 +352,7 @@ void InitPiroSkills() {
     RegisterAbilityCastHandler('A00X', @E_Cast);
     RegisterAbilityCastHandler('A00V', @W_Cast);
     RegisterAbilityCastHandler('A00W', @Q_Cast);
-    Jass::ConsolePrint("Piro skills initialized.");
+    Debug("InitPiroSkills", "Piro skills initialized.");
 }
 
 } // namespace Piro
