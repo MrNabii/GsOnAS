@@ -185,7 +185,7 @@ void InitHeroSkills(unit u) {
     g_HeroTaker2[pid] = nil;
 
     OSA_ApplyHeroItemOwnership(u);
-
+    Jass::SetPlayerState(Jass::GetOwningPlayer(u), Jass::PLAYER_STATE_RESOURCE_LUMBER, 100);
     if (IsUnitEngineer(u)) {
         Jass::SetPlayerState(Jass::GetOwningPlayer(u), Jass::PLAYER_STATE_RESOURCE_GOLD, 1000);
     }
@@ -212,6 +212,10 @@ void OnUnitEnterMap() {
 			cb(u);
 		}
 	}
+
+    if(Jass::UnitInventorySize(u) > 0 && Jass::IsUnitHero(u) && !Jass::IsUnitIllusion(u)) {
+        Jass::UnitInventorySetSize(u, 12);
+    }
 
     if(Jass::IsUnitHero(u) && !Jass::IsUnitIllusion(u) && Jass::GetUnitTypeId(u) != 'h04I' && Jass::GetPlayerId(Jass::GetOwningPlayer(u)) < 10) {
         GoblinUnit[Jass::GetPlayerId(Jass::GetOwningPlayer(u))] = u;

@@ -335,6 +335,142 @@ void CreateAllDestructables() {
     Jass::CreateDestructable('YTpb', -5280.0, 5152.0, 270.000, 1.000, 0);
 }
 
+void InitFrame() {
+    Jass::ClearFrameAllPoints(Jass::GetFrameByName("UpperButtonBarMenuButton", 0));
+    Jass::SetFrameAbsolutePoint(Jass::GetFrameByName("UpperButtonBarMenuButton", 0), Jass::FRAMEPOINT_TOPLEFT, 0.0, 0.6);
+    Jass::SetFrameSize(Jass::GetFrameByName("UpperButtonBarMenuButton", 0), 0.043, 0.022);
+
+    Jass::ClearFrameAllPoints(Jass::GetFrameByName("UpperButtonBarQuestsButton", 0));
+    Jass::SetFrameRelativePoint(Jass::GetFrameByName("UpperButtonBarQuestsButton", 0), Jass::FRAMEPOINT_TOPLEFT, Jass::GetFrameByName("UpperButtonBarMenuButton", 0), Jass::FRAMEPOINT_TOPRIGHT, 0.0, 0.0);
+    Jass::SetFrameSize(Jass::GetFrameByName("UpperButtonBarQuestsButton", 0), 0.043, 0.022);
+
+    Jass::ClearFrameAllPoints(Jass::GetFrameByName("UpperButtonBarAlliesButton", 0));
+    Jass::SetFrameRelativePoint(Jass::GetFrameByName("UpperButtonBarAlliesButton", 0), Jass::FRAMEPOINT_TOPLEFT, Jass::GetFrameByName("UpperButtonBarQuestsButton", 0), Jass::FRAMEPOINT_TOPRIGHT, 0.0, 0.0);
+    Jass::SetFrameSize(Jass::GetFrameByName("UpperButtonBarAlliesButton", 0), 0.043, 0.022);
+
+    Jass::ClearFrameAllPoints(Jass::GetFrameByName("UpperButtonBarChatButton", 0));
+    Jass::SetFrameRelativePoint(Jass::GetFrameByName("UpperButtonBarChatButton", 0), Jass::FRAMEPOINT_TOPLEFT, Jass::GetFrameByName("UpperButtonBarAlliesButton", 0), Jass::FRAMEPOINT_TOPRIGHT, 0.0, 0.0);
+    Jass::SetFrameSize(Jass::GetFrameByName("UpperButtonBarChatButton", 0), 0.043, 0.022);
+
+    Jass::ClearFrameAllPoints(Jass::GetOriginFrame(Jass::ORIGIN_FRAME_HERO_BUTTON, 0));
+    Jass::SetFrameRelativePoint(Jass::GetOriginFrame(Jass::ORIGIN_FRAME_HERO_BUTTON, 0), Jass::FRAMEPOINT_TOPLEFT, Jass::GetFrameByName("UpperButtonBarChatButton", 0), Jass::FRAMEPOINT_BOTTOMLEFT, 0.0, 0.0001);
+    Jass::ClearFrameAllPoints(Jass::GetOriginFrame(Jass::ORIGIN_FRAME_HERO_BUTTON, 1));
+    Jass::SetFrameRelativePoint(Jass::GetOriginFrame(Jass::ORIGIN_FRAME_HERO_BUTTON, 1), Jass::FRAMEPOINT_TOP, Jass::GetOriginFrame(Jass::ORIGIN_FRAME_HERO_BUTTON, 0), Jass::FRAMEPOINT_BOTTOM, 0.0, -0.013);
+    Jass::ClearFrameAllPoints(Jass::GetOriginFrame(Jass::ORIGIN_FRAME_HERO_BUTTON, 2));
+    Jass::SetFrameRelativePoint(Jass::GetOriginFrame(Jass::ORIGIN_FRAME_HERO_BUTTON, 2), Jass::FRAMEPOINT_TOP, Jass::GetOriginFrame(Jass::ORIGIN_FRAME_HERO_BUTTON, 1), Jass::FRAMEPOINT_BOTTOM, 0.0, -0.014);
+    Jass::ClearFrameAllPoints(Jass::GetOriginFrame(Jass::ORIGIN_FRAME_HERO_BUTTON, 3));
+    Jass::SetFrameRelativePoint(Jass::GetOriginFrame(Jass::ORIGIN_FRAME_HERO_BUTTON, 3), Jass::FRAMEPOINT_TOP, Jass::GetOriginFrame(Jass::ORIGIN_FRAME_HERO_BUTTON, 2), Jass::FRAMEPOINT_BOTTOM, 0.0, -0.014);
+    Jass::ClearFrameAllPoints(Jass::GetOriginFrame(Jass::ORIGIN_FRAME_HERO_BUTTON, 4));
+    Jass::SetFrameRelativePoint(Jass::GetOriginFrame(Jass::ORIGIN_FRAME_HERO_BUTTON, 4), Jass::FRAMEPOINT_TOP, Jass::GetOriginFrame(Jass::ORIGIN_FRAME_HERO_BUTTON, 3), Jass::FRAMEPOINT_BOTTOM, 0.0, -0.014);
+    Jass::ClearFrameAllPoints(Jass::GetOriginFrame(Jass::ORIGIN_FRAME_HERO_BUTTON, 5));
+    Jass::SetFrameRelativePoint(Jass::GetOriginFrame(Jass::ORIGIN_FRAME_HERO_BUTTON, 5), Jass::FRAMEPOINT_TOP, Jass::GetOriginFrame(Jass::ORIGIN_FRAME_HERO_BUTTON, 4), Jass::FRAMEPOINT_BOTTOM, 0.0, -0.014);
+    Jass::SetFrameScale(Jass::GetOriginFrame(Jass::ORIGIN_FRAME_TIME_OF_DAY_INDICATOR, 0), 0.01);
+
+
+    
+    Jass::SetFrameScale(Jass::GetOriginFrame(Jass::ORIGIN_FRAME_BUFF_BAR, 0), 0.001);
+    Jass::SetFrameScale(Jass::GetOriginFrame(Jass::ORIGIN_FRAME_BUFF_BAR_TEXT, 0), 0.001);
+    Jass::SetFrameScale(Jass::GetOriginFrame(Jass::ORIGIN_FRAME_BUFF_BAR_INDICATOR, 0), 0.001);
+
+
+    Jass::SetFrameRelativePoint(Jass::GetOriginFrame(Jass::ORIGIN_FRAME_INFO_BAR, 0), Jass::FRAMEPOINT_TOPLEFT, Jass::GetOriginFrame(Jass::ORIGIN_FRAME_PORTRAIT, 0), Jass::FRAMEPOINT_TOPRIGHT, 0.0001, 0.0);
+    Jass::SetFrameWidth(Jass::GetFrameByName("SimpleHeroLevelBar", 0), 0.09);
+    Jass::SetFrameWidth(Jass::GetFrameByName("SimpleProgressIndicator", 0), 0.09);
+    //Jass::SetFrameWidth(Jass::GetOriginFrame(Jass::ORIGIN_FRAME_HERO_BAR, 0), 0.10);
+    Jass::SetFrameGridSize(Jass::GetOriginFrame(Jass::ORIGIN_FRAME_INVENTORY_BAR, 0), 6, 4);
+    Jass::ShowFrame(Jass::GetFrameByName("InfoPanelIconHeroIcon", 6), false);
+    Jass::SetFrameEnabled(Jass::GetFrameByName("InfoPanelIconHeroIcon", 6), false);
+
+    Jass::ClearFrameAllPoints(Jass::GetOriginFrame(Jass::ORIGIN_FRAME_ITEM_BUTTON, 0));
+    Jass::SetFrameAbsolutePoint(Jass::GetOriginFrame(Jass::ORIGIN_FRAME_ITEM_BUTTON, 0), Jass::FRAMEPOINT_TOPLEFT, 0.439, 0.112);
+
+    Jass::ClearFrameAllPoints(Jass::GetOriginFrame(Jass::ORIGIN_FRAME_ITEM_BUTTON, 1));
+    Jass::SetFrameAbsolutePoint(Jass::GetOriginFrame(Jass::ORIGIN_FRAME_ITEM_BUTTON, 1), Jass::FRAMEPOINT_TOPLEFT, 0.472, 0.112);
+    
+    Jass::ClearFrameAllPoints(Jass::GetOriginFrame(Jass::ORIGIN_FRAME_ITEM_BUTTON, 2));
+    Jass::SetFrameAbsolutePoint(Jass::GetOriginFrame(Jass::ORIGIN_FRAME_ITEM_BUTTON, 2), Jass::FRAMEPOINT_TOPLEFT, 0.439, 0.074);
+
+    Jass::ClearFrameAllPoints(Jass::GetOriginFrame(Jass::ORIGIN_FRAME_ITEM_BUTTON, 3));
+    Jass::SetFrameAbsolutePoint(Jass::GetOriginFrame(Jass::ORIGIN_FRAME_ITEM_BUTTON, 3), Jass::FRAMEPOINT_TOPLEFT, 0.472, 0.074);
+
+    Jass::ClearFrameAllPoints(Jass::GetOriginFrame(Jass::ORIGIN_FRAME_ITEM_BUTTON, 4));
+    Jass::SetFrameAbsolutePoint(Jass::GetOriginFrame(Jass::ORIGIN_FRAME_ITEM_BUTTON, 4), Jass::FRAMEPOINT_TOPLEFT, 0.439, 0.036);
+
+    Jass::ClearFrameAllPoints(Jass::GetOriginFrame(Jass::ORIGIN_FRAME_ITEM_BUTTON, 5));
+    Jass::SetFrameAbsolutePoint(Jass::GetOriginFrame(Jass::ORIGIN_FRAME_ITEM_BUTTON, 5), Jass::FRAMEPOINT_TOPLEFT, 0.472, 0.036);
+
+
+    Jass::ClearFrameAllPoints(Jass::GetOriginFrame(Jass::ORIGIN_FRAME_ITEM_BUTTON, 6));
+    Jass::SetFrameAbsolutePoint(Jass::GetOriginFrame(Jass::ORIGIN_FRAME_ITEM_BUTTON, 6), Jass::FRAMEPOINT_TOPLEFT, 0.505, 0.112);
+
+    Jass::ClearFrameAllPoints(Jass::GetOriginFrame(Jass::ORIGIN_FRAME_ITEM_BUTTON, 7));
+    Jass::SetFrameAbsolutePoint(Jass::GetOriginFrame(Jass::ORIGIN_FRAME_ITEM_BUTTON, 7), Jass::FRAMEPOINT_TOPLEFT, 0.544, 0.112);
+    
+    Jass::ClearFrameAllPoints(Jass::GetOriginFrame(Jass::ORIGIN_FRAME_ITEM_BUTTON, 8));
+    Jass::SetFrameAbsolutePoint(Jass::GetOriginFrame(Jass::ORIGIN_FRAME_ITEM_BUTTON, 8), Jass::FRAMEPOINT_TOPLEFT, 0.505, 0.074);
+
+    Jass::ClearFrameAllPoints(Jass::GetOriginFrame(Jass::ORIGIN_FRAME_ITEM_BUTTON, 9));
+    Jass::SetFrameAbsolutePoint(Jass::GetOriginFrame(Jass::ORIGIN_FRAME_ITEM_BUTTON, 9), Jass::FRAMEPOINT_TOPLEFT, 0.544, 0.074);
+
+    Jass::ClearFrameAllPoints(Jass::GetOriginFrame(Jass::ORIGIN_FRAME_ITEM_BUTTON, 10));
+    Jass::SetFrameAbsolutePoint(Jass::GetOriginFrame(Jass::ORIGIN_FRAME_ITEM_BUTTON, 10), Jass::FRAMEPOINT_TOPLEFT, 0.505, 0.036);
+
+    Jass::ClearFrameAllPoints(Jass::GetOriginFrame(Jass::ORIGIN_FRAME_ITEM_BUTTON, 11));
+    Jass::SetFrameAbsolutePoint(Jass::GetOriginFrame(Jass::ORIGIN_FRAME_ITEM_BUTTON, 11), Jass::FRAMEPOINT_TOPLEFT, 0.544, 0.036);
+
+
+    Jass::ClearFrameAllPoints(Jass::GetOriginFrame(Jass::ORIGIN_FRAME_ITEM_BUTTON, 12));
+    Jass::SetFrameAbsolutePoint(Jass::GetOriginFrame(Jass::ORIGIN_FRAME_ITEM_BUTTON, 12), Jass::FRAMEPOINT_BOTTOMLEFT, 0.577, 0.097);
+    Jass::SetFrameSize(Jass::GetOriginFrame(Jass::ORIGIN_FRAME_ITEM_BUTTON, 12), 0.016, 0.016);
+
+    Jass::ClearFrameAllPoints(Jass::GetOriginFrame(Jass::ORIGIN_FRAME_ITEM_BUTTON, 13));
+    Jass::SetFrameAbsolutePoint(Jass::GetOriginFrame(Jass::ORIGIN_FRAME_ITEM_BUTTON, 13), Jass::FRAMEPOINT_BOTTOMLEFT, 0.577, 0.080);
+    Jass::SetFrameSize(Jass::GetOriginFrame(Jass::ORIGIN_FRAME_ITEM_BUTTON, 13), 0.016, 0.016);
+
+    Jass::ClearFrameAllPoints(Jass::GetOriginFrame(Jass::ORIGIN_FRAME_ITEM_BUTTON, 14));
+    Jass::SetFrameAbsolutePoint(Jass::GetOriginFrame(Jass::ORIGIN_FRAME_ITEM_BUTTON, 14), Jass::FRAMEPOINT_BOTTOMLEFT, 0.577, 0.060);
+    Jass::SetFrameSize(Jass::GetOriginFrame(Jass::ORIGIN_FRAME_ITEM_BUTTON, 14), 0.016, 0.016);
+
+    Jass::ClearFrameAllPoints(Jass::GetOriginFrame(Jass::ORIGIN_FRAME_ITEM_BUTTON, 15));
+    Jass::SetFrameAbsolutePoint(Jass::GetOriginFrame(Jass::ORIGIN_FRAME_ITEM_BUTTON, 15), Jass::FRAMEPOINT_BOTTOMLEFT, 0.577, 0.043);
+    Jass::SetFrameSize(Jass::GetOriginFrame(Jass::ORIGIN_FRAME_ITEM_BUTTON, 15), 0.016, 0.016);
+
+    Jass::ClearFrameAllPoints(Jass::GetOriginFrame(Jass::ORIGIN_FRAME_ITEM_BUTTON, 16));
+    Jass::SetFrameAbsolutePoint(Jass::GetOriginFrame(Jass::ORIGIN_FRAME_ITEM_BUTTON, 16), Jass::FRAMEPOINT_BOTTOMLEFT, 0.577, 0.022);
+    Jass::SetFrameSize(Jass::GetOriginFrame(Jass::ORIGIN_FRAME_ITEM_BUTTON, 16), 0.016, 0.016);
+
+    Jass::ClearFrameAllPoints(Jass::GetOriginFrame(Jass::ORIGIN_FRAME_ITEM_BUTTON, 17));
+    Jass::SetFrameAbsolutePoint(Jass::GetOriginFrame(Jass::ORIGIN_FRAME_ITEM_BUTTON, 17), Jass::FRAMEPOINT_BOTTOMLEFT, 0.577, 0.005);
+    Jass::SetFrameSize(Jass::GetOriginFrame(Jass::ORIGIN_FRAME_ITEM_BUTTON, 17), 0.016, 0.016);
+
+
+    Jass::ClearFrameAllPoints(Jass::GetOriginFrame(Jass::ORIGIN_FRAME_ITEM_BUTTON, 18));
+    Jass::SetFrameAbsolutePoint(Jass::GetOriginFrame(Jass::ORIGIN_FRAME_ITEM_BUTTON, 18), Jass::FRAMEPOINT_BOTTOMLEFT, 0.594, 0.097);
+    Jass::SetFrameSize(Jass::GetOriginFrame(Jass::ORIGIN_FRAME_ITEM_BUTTON, 18), 0.016, 0.016);
+
+    Jass::ClearFrameAllPoints(Jass::GetOriginFrame(Jass::ORIGIN_FRAME_ITEM_BUTTON, 19));
+    Jass::SetFrameAbsolutePoint(Jass::GetOriginFrame(Jass::ORIGIN_FRAME_ITEM_BUTTON, 19), Jass::FRAMEPOINT_BOTTOMLEFT, 0.594, 0.080);
+    Jass::SetFrameSize(Jass::GetOriginFrame(Jass::ORIGIN_FRAME_ITEM_BUTTON, 19), 0.016, 0.016);
+
+    Jass::ClearFrameAllPoints(Jass::GetOriginFrame(Jass::ORIGIN_FRAME_ITEM_BUTTON, 20));
+    Jass::SetFrameAbsolutePoint(Jass::GetOriginFrame(Jass::ORIGIN_FRAME_ITEM_BUTTON, 20), Jass::FRAMEPOINT_BOTTOMLEFT, 0.594, 0.060);
+    Jass::SetFrameSize(Jass::GetOriginFrame(Jass::ORIGIN_FRAME_ITEM_BUTTON, 20), 0.016, 0.016);
+
+    Jass::ClearFrameAllPoints(Jass::GetOriginFrame(Jass::ORIGIN_FRAME_ITEM_BUTTON, 21));
+    Jass::SetFrameAbsolutePoint(Jass::GetOriginFrame(Jass::ORIGIN_FRAME_ITEM_BUTTON, 21), Jass::FRAMEPOINT_BOTTOMLEFT, 0.594, 0.043);
+    Jass::SetFrameSize(Jass::GetOriginFrame(Jass::ORIGIN_FRAME_ITEM_BUTTON, 21), 0.016, 0.016);
+
+    Jass::ClearFrameAllPoints(Jass::GetOriginFrame(Jass::ORIGIN_FRAME_ITEM_BUTTON, 22));
+    Jass::SetFrameAbsolutePoint(Jass::GetOriginFrame(Jass::ORIGIN_FRAME_ITEM_BUTTON, 22), Jass::FRAMEPOINT_BOTTOMLEFT, 0.594, 0.022);
+    Jass::SetFrameSize(Jass::GetOriginFrame(Jass::ORIGIN_FRAME_ITEM_BUTTON, 22), 0.016, 0.016);
+
+    Jass::ClearFrameAllPoints(Jass::GetOriginFrame(Jass::ORIGIN_FRAME_ITEM_BUTTON, 23));
+    Jass::SetFrameAbsolutePoint(Jass::GetOriginFrame(Jass::ORIGIN_FRAME_ITEM_BUTTON, 23), Jass::FRAMEPOINT_BOTTOMLEFT, 0.594, 0.005);
+    Jass::SetFrameSize(Jass::GetOriginFrame(Jass::ORIGIN_FRAME_ITEM_BUTTON, 23), 0.016, 0.016);
+
+
+}
+
 void main() {
     Jass::SetCameraBounds(- 7296.0 + Jass::GetCameraMargin(CAMERA_MARGIN_LEFT), - 7424.0 + Jass::GetCameraMargin(CAMERA_MARGIN_BOTTOM), 16128.0 - Jass::GetCameraMargin(CAMERA_MARGIN_RIGHT), 7296.0 - Jass::GetCameraMargin(CAMERA_MARGIN_TOP), - 7296.0 + Jass::GetCameraMargin(CAMERA_MARGIN_LEFT), 7296.0 - Jass::GetCameraMargin(CAMERA_MARGIN_TOP), 16128.0 - Jass::GetCameraMargin(CAMERA_MARGIN_RIGHT), - 7424.0 + Jass::GetCameraMargin(CAMERA_MARGIN_BOTTOM));
     Jass::SetWaterBaseColor(64, 64, 64, 255);
@@ -344,7 +480,13 @@ void main() {
     Jass::SetMapMusic("Music", true, 0);
     CreateAllDestructables();
     Jass::SetDayNightModels("Environment\\DNC\\DNCDalaran\\DNCDalaranTerrain\\DNCDalaranTerrain.mdl", "Environment\\DNC\\DNCDalaran\\DNCDalaranUnit\\DNCDalaranUnit.mdl");
+
+    InitFrame();
     
+    Jass::SetFrameScale(Jass::GetFrameByName("SimpleInfoPanelIconHeroText", 6), 0.001);
+    Jass::ShowFrame(Jass::GetFrameByName("InfoPanelIconHeroIcon", 6), false);
+    
+
     Jass::CreateUnit(Jass::Player(15), 'h085', -7232.0, 5312.0, 270.000);
     Jass::CreateUnit(Jass::Player(15), 'h00F', -6512.6, 5159.5, 35.774);
     Jass::CreateUnit(Jass::Player(15), 'n00B', -6528.0, 6592.0, 270.000);

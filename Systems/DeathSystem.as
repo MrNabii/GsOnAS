@@ -37,32 +37,32 @@ void Tainik_Death(unit diedunit, unit killer) {
 				Jass::CreateUnit( Jass::Player(Jass::PLAYER_NEUTRAL_PASSIVE), 'n02D', x, y, 0. );
 			} else if(roll < chance1 + chance2) {
 				switch(Jass::GetRandomInt(0, 5)) {
-					case 0: CreateRegisteredItem( 'I050', x, y ); break;
-					case 1: CreateRegisteredItem( 'I04Y', x, y ); break;
-					case 2: CreateRegisteredItem( 'I052', x, y ); break;
-					case 3: CreateRegisteredItem( 'I04Z', x, y ); break;
-					case 4: CreateRegisteredItem( 'I051', x, y ); break;
-					case 5: CreateRegisteredItem( 'I04X', x, y ); break;
+					case 0: CreateItemCustom( 'I050', x, y ); break;
+					case 1: CreateItemCustom( 'I04Y', x, y ); break;
+					case 2: CreateItemCustom( 'I052', x, y ); break;
+					case 3: CreateItemCustom( 'I04Z', x, y ); break;
+					case 4: CreateItemCustom( 'I051', x, y ); break;
+					case 5: CreateItemCustom( 'I04X', x, y ); break;
 				}
 			} else if(roll < chance1 + chance2 + chance3) {
 				switch(Jass::GetRandomInt(0, 4)) {
-					case 0: CreateRegisteredItem( 'I02T', x, y ); break;
-					case 1: CreateRegisteredItem( 'I036', x, y ); break;
-					case 2: CreateRegisteredItem( 'I09Z', x, y ); break;
-					case 3: CreateRegisteredItem( 'I047', x, y ); break;
-					case 4: CreateRegisteredItem( 'I037', x, y ); break;
+					case 0: CreateItemCustom( 'I02T', x, y ); break;
+					case 1: CreateItemCustom( 'I036', x, y ); break;
+					case 2: CreateItemCustom( 'I09Z', x, y ); break;
+					case 3: CreateItemCustom( 'I047', x, y ); break;
+					case 4: CreateItemCustom( 'I037', x, y ); break;
 				}
 			} else if(roll < chance1 + chance2 + chance3 + chance4) {
 				switch(Jass::GetRandomInt(0, 3)) {
-					case 0: CreateRegisteredItem( 'I070', x, y ); break;
-					case 1: CreateRegisteredItem( 'I0A3', x, y ); break;
-					case 2: CreateRegisteredItem( 'I048', x, y ); break;
-					case 3: CreateRegisteredItem( 'I0A4', x, y ); break;
+					case 0: CreateItemCustom( 'I070', x, y ); break;
+					case 1: CreateItemCustom( 'I0A3', x, y ); break;
+					case 2: CreateItemCustom( 'I048', x, y ); break;
+					case 3: CreateItemCustom( 'I0A4', x, y ); break;
 				}
 			} else {
 				switch(Jass::GetRandomInt(0, 1)) {
-					case 0: CreateRegisteredItem( GetWaveUnit_Actions(), x, y ); break;
-					case 1: CreateRegisteredItem( 'I123', x, y ); break;
+					case 0: CreateItemCustom( GetWaveUnit_Actions(), x, y ); break;
+					case 1: CreateItemCustom( 'I123', x, y ); break;
 				}
 			}
 			if(heroData.ArchLevel > 0) {
@@ -86,12 +86,12 @@ void Tainik_Death(unit diedunit, unit killer) {
 					OreType = 'I003';
 				}
 				if(IsUnitEngineer(killer)) {
-					CreateRegisteredItem( OreType, x, y );
-					CreateRegisteredItem( OreType, x, y );
-					CreateRegisteredItem( OreType, x, y );
-					CreateRegisteredItem( OreType, x, y );
+					CreateItemCustom( OreType, x, y );
+					CreateItemCustom( OreType, x, y );
+					CreateItemCustom( OreType, x, y );
+					CreateItemCustom( OreType, x, y );
 				} else {
-					CreateRegisteredItem( OreType, x, y );
+					CreateItemCustom( OreType, x, y );
 				}
 
 				chance1 = 120 - Luck * 2;
@@ -105,19 +105,19 @@ void Tainik_Death(unit diedunit, unit killer) {
 					//Jass::CreateUnit( Jass::Player(Jass::PLAYER_NEUTRAL_PASSIVE), 'n02D', x, y, 0. );
 				} else if(roll < chance1 + chance2) {
 					switch(Jass::GetRandomInt(0, 5)) {
-						case 0: CreateRegisteredItem( 'I050', x, y ); break;
-						case 1: CreateRegisteredItem( 'I04Y', x, y ); break;
-						case 2: CreateRegisteredItem( 'I052', x, y ); break;
-						case 3: CreateRegisteredItem( 'I04Z', x, y ); break;
-						case 4: CreateRegisteredItem( 'I051', x, y ); break;
-						case 5: CreateRegisteredItem( 'I04X', x, y ); break;
+						case 0: CreateItemCustom( 'I050', x, y ); break;
+						case 1: CreateItemCustom( 'I04Y', x, y ); break;
+						case 2: CreateItemCustom( 'I052', x, y ); break;
+						case 3: CreateItemCustom( 'I04Z', x, y ); break;
+						case 4: CreateItemCustom( 'I051', x, y ); break;
+						case 5: CreateItemCustom( 'I04X', x, y ); break;
 					}
 				} else if(roll < chance1 + chance2 + chance3) {
-					CreateRegisteredItem( 'I0OV', x, y );
+					CreateItemCustom( 'I0OV', x, y );
 				} else if(roll < chance1 + chance2 + chance3 + chance4) {
 					//Jass::CreateItem( 'I061', x, y );
 				} else {
-					CreateRegisteredItem( 'I0D1', x, y );
+					CreateItemCustom( 'I0D1', x, y );
 				}
 			}
 		}

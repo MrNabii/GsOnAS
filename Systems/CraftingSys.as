@@ -53,7 +53,7 @@ item GetItemOfTypeFromUnitEx(unit whichUnit, int itemId) {
 }
 
 item UnitAddItemByIdSwapped(int itemId, unit whichHero, int ownerPlayerId = -1) {
-    item lastCreatedItem = CreateRegisteredItem(itemId, Jass::GetUnitX(whichHero), Jass::GetUnitY(whichHero), ownerPlayerId);
+    item lastCreatedItem = CreateItemCustom(itemId, Jass::GetUnitX(whichHero), Jass::GetUnitY(whichHero), ownerPlayerId);
     Jass::UnitAddItem(whichHero, lastCreatedItem);
     return lastCreatedItem;
 }
@@ -383,7 +383,7 @@ class CraftRecipe {
 
     void CheckItem(unit cUnit) {
         for (int i = 0; i < MAX_CRAFT_INGREDIENTS && ReqItems[i] > 0; i++) {
-            item itm = CreateRegisteredItem(ReqItems[i], Jass::GetUnitX(cUnit), Jass::GetUnitY(cUnit));
+            item itm = CreateItemCustom(ReqItems[i], Jass::GetUnitX(cUnit), Jass::GetUnitY(cUnit));
             Jass::SetItemCharges(itm, RICount[i]);
         }
     }

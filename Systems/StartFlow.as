@@ -2,7 +2,7 @@ timerdialog SG_StartTimerDialog = nil;
 bool SG_StartFinalized = false;
 
 item SG_AddItemToHero(unit hero, int itemTypeId) {
-    item it = CreateRegisteredItem(itemTypeId, Jass::GetUnitX(hero), Jass::GetUnitY(hero));
+    item it = CreateItemCustom(itemTypeId, Jass::GetUnitX(hero), Jass::GetUnitY(hero));
     Jass::UnitAddItem(hero, it);
     return it;
 }

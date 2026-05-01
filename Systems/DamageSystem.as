@@ -185,7 +185,7 @@ void OnUnitDamaged() {
             ItemTypeId = 'I000';
         }
         for(int i = 0; i < ItemNumber; i++) {
-            CreateRegisteredItem(ItemTypeId, Jass::GetUnitX(source), Jass::GetUnitY(source));
+            CreateItemCustom(ItemTypeId, Jass::GetUnitX(source), Jass::GetUnitY(source));
         }
         float randomChance = Jass::GetRandomReal(0, 100);
         Debug("OnUnitDamaged", "\nRandom Chance for Bonus Item: " + Jass::R2S(randomChance) + "% (Luck: " + Jass::R2S(srcData.totalStats.luck) + ")");
@@ -205,7 +205,7 @@ void OnUnitDamaged() {
                 ItemTypeId = 'I052';
             }
             for(int i = 0; i < ItemNumber; i++) {
-                CreateRegisteredItem(ItemTypeId, Jass::GetUnitX(source), Jass::GetUnitY(source));
+                CreateItemCustom(ItemTypeId, Jass::GetUnitX(source), Jass::GetUnitY(source));
             }
         }
         return;

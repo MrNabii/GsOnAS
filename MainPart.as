@@ -589,6 +589,18 @@ bool IsPlaceableAtById( float x, float y )
     return Jass::IsUnitPlaceableAtById( 'h008', Jass::Player(0), x, y, 0, 0, 0, 0, true, false, false, false, false, false );
 }
 
+void InitSoldUnit() {
+    unit u = Jass::GetTriggerUnit();
+    unit buyer = Jass::GetBuyingUnit();
+    unit sold  = Jass::GetSoldUnit();
+    int soldId = Jass::GetUnitTypeId(sold);
+    if (Jass::GetUnitTypeId(buyer) != 'h088')
+        Jass::RemoveUnit(sold);
+    if (Jass::GetUnitTypeId(buyer) != 'h08F')
+        Jass::RemoveUnit(sold);
+    Debug("InitSoldUnit", "BuyerId: " + Jass::GetUnitTypeId(buyer) + " SoldId: " + soldId + "GetTriggerUnit:" + Jass::GetUnitName(u));
+}
+
 void SpawnInitResources() {
     // --------------------------------------------------------- Глыбы
     g_Gliba[0] = 'h008';
@@ -817,6 +829,8 @@ void GameStart() {
     InitBuffSystem();
     Debug("GameStart", "Init step: InitCraftingSystemFrame");
     InitCraftingSystemFrame();
+    Debug("GameStart", "Init step: InitSoldUnit");
+    InitSoldUnit();
     if(TestDebugMode) {
         Debug("GameStart", "Init step: InitCheats");
         InitCheats();

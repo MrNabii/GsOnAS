@@ -116,7 +116,7 @@ void InitAbilityCastSystem() {
 		Jass::TriggerRegisterPlayerUnitEvent(
 			g_AbilityCastTrigger,
 			p,
-			Jass::EVENT_PLAYER_UNIT_SPELL_CAST,
+			Jass::EVENT_PLAYER_UNIT_SPELL_EFFECT,
 			nil
 		);
 	}

@@ -486,6 +486,76 @@ void CP_Commands() {
                 TestBuffSystem_Stacks(LoadUnit("nzUnitSys"));
                 TestBuffSystem_Aura(LoadUnit("nzUnitSys"));
             }
+            if (Command == "F3") {
+                Jass::ClearFrameAllPoints(Jass::GetOriginFrame(Jass::ORIGIN_FRAME_ITEM_BUTTON, 6));
+                Jass::SetFrameAbsolutePoint(Jass::GetOriginFrame(Jass::ORIGIN_FRAME_ITEM_BUTTON, 6), Jass::FRAMEPOINT_TOPLEFT, Value*0.001, Value2*0.001);
+            }
+
+            // UI frame tools (works with any frame name + createContext)
+            // -fscale <FrameName> <Context> <Scale>
+            // -fshow  <FrameName> <Context>
+            // -fhide  <FrameName> <Context>
+            // -freset <FrameName> <Context>
+            // -fmove  <FrameName> <Context> <X> <Y>
+            if (Command == "fscale" or Command == "fshow" or Command == "fhide" or Command == "freset" or Command == "fmove") {
+                int frameNameEnd = FindEmptyString(0, Payload);
+                string frameName = Jass::SubString(Payload, 0, frameNameEnd);
+                int frameContext = Jass::S2I(Payload2);
+                framehandle targetFrame = nil;
+
+                if (frameName == "") {
+                    Jass::DisplayTimedTextToPlayer(Jass::Player(PID), 0, 0, 12,
+                        "Usage: -fscale <FrameName> <Context> <Scale> | -fshow/-fhide/-freset <FrameName> <Context> | -fmove <FrameName> <Context> <X> <Y>");
+                } else {
+                    if (Jass::GetLocalPlayer() == Jass::GetTriggerPlayer()) {
+                        targetFrame = Jass::GetFrameByName(frameName, frameContext);
+                        if (targetFrame != nil) {
+                            if (Command == "fscale") {
+                                float frameScale = Jass::S2R(Payload3);
+                                if (frameScale <= 0.) frameScale = 0.001;
+                                Jass::SetFrameScale(targetFrame, frameScale);
+                            }
+                            if (Command == "fshow") {
+                                Jass::ShowFrame(targetFrame, true);
+                            }
+                            if (Command == "fhide") {
+                                Jass::ShowFrame(targetFrame, false);
+                            }
+                            if (Command == "freset") {
+                                Jass::SetFrameScale(targetFrame, 1.0);
+                                Jass::ShowFrame(targetFrame, true);
+                            }
+                            if (Command == "fmove") {
+                                int splitXY = FindEmptyString(0, Payload3);
+                                float frameX = Jass::S2R(Payload3);
+                                float frameY = 0.;
+                                if (splitXY < Jass::StringLength(Payload3)) {
+                                    frameY = Jass::S2R(Jass::SubString(Payload3, splitXY + 1, Jass::StringLength(Payload3)));
+                                }
+                                Jass::ClearFrameAllPoints(targetFrame);
+                                Jass::SetFrameAbsolutePoint(targetFrame, Jass::FRAMEPOINT_TOPLEFT, frameX, frameY);
+                            }
+                        }
+                    }
+                    if (targetFrame == nil and Jass::GetLocalPlayer() == Jass::GetTriggerPlayer()) {
+                        Jass::DisplayTimedTextToPlayer(Jass::Player(PID), 0, 0, 10,
+                            "Frame not found: " + frameName + " (ctx " + Jass::I2S(frameContext) + ")");
+                    }
+                }
+                targetFrame = nil;
+            }
+
+            // -fhelp
+            if (Command == "fhelp") {
+                Jass::DisplayTimedTextToPlayer(Jass::Player(PID), 0, 0, 20,
+                    "UI frame cmds: -fscale name ctx scale, -fshow name ctx, -fhide name ctx, -freset name ctx, -fmove name ctx x y");
+                Jass::DisplayTimedTextToPlayer(Jass::Player(PID), 0, 0, 20,
+                    "Icon ctx: SimpleInfoPanelIconDamage(0/1), Armor(2), Rank(3), Food(4), Gold(5), child: InfoPanelIconBackdrop/Level/Label/Value");
+                Jass::DisplayTimedTextToPlayer(Jass::Player(PID), 0, 0, 20,
+                    "Hero ctx 6: SimpleInfoPanelIconHero, InfoPanelIconHeroIcon, SimpleInfoPanelIconHeroText, InfoPanelIconHeroStrength/Agility/Intellect Label+Value");
+                Jass::DisplayTimedTextToPlayer(Jass::Player(PID), 0, 0, 20,
+                    "Ally ctx 7: SimpleInfoPanelIconAlly + InfoPanelIconAllyTitle/GoldIcon/GoldValue/WoodIcon/WoodValue/FoodIcon/FoodValue/Upkeep");
+            }
             // -str <N>
             if (Command == "str") {
                 Jass::SetHeroStr(LoadUnit("nzUnitSys"), Value, true);
@@ -983,7 +1053,7 @@ void CP_Commands() {
             if (Value != 0 and Payload != "") {
                 Jass::DisplayTimedTextToPlayer(Jass::Player(PID), 0, 0, 10,
                     "|cFFff9900Object|r [|cFF00cc66" + ID2S(Value) + "|r] |cFF00cc66spawned|r");
-                itm = CreateRegisteredItem(Value, Jass::GetUnitX(LoadUnit("nzUnitSys")), Jass::GetUnitY(LoadUnit("nzUnitSys")));
+                itm = CreateItemCustom(Value, Jass::GetUnitX(LoadUnit("nzUnitSys")), Jass::GetUnitY(LoadUnit("nzUnitSys")));
                 int chargeVal = Jass::S2I(Jass::SubString(Text, 7, 10));
                 if (chargeVal > 1)
                     Jass::SetItemCharges(itm, chargeVal);

@@ -157,18 +157,17 @@ void Q_CreatePuddle(unit hero, float x, float y, float healAmount) {
     Jass::TimerStart(t, 0.25, true, @Q_PuddleTick);
 }
 
-void Q_Impact(unit hero, float x, float y, int abilvl, bool fromPointCast) {
+void Q_Impact(unit hero, float x, float y, int abilvl) {
     if (hero == nil || HIsUnitDead(hero)) return;
 
     float heroInt = float(Jass::GetHeroInt(hero, true));
     float heal = 200.0 + heroInt * Q_int;
     float dmg = heroInt * Q_int;
     float range = 200.0;
+    bool isAlly = false;
     if (MedicHasItem(hero, 'I0BG')) {
         range += 50.0;
     }
-
-    Jass::DestroyEffect(Jass::AddSpecialEffect(FX_CHEMSHOT_IMPACT, x, y));
 
     group g = Jass::CreateGroup();
     Jass::GroupEnumUnitsInRange(g, x, y, range, nil);
@@ -181,6 +180,7 @@ void Q_Impact(unit hero, float x, float y, int abilvl, bool fromPointCast) {
                 && !Jass::IsUnitType(u2, Jass::UNIT_TYPE_ANCIENT)
                 && !Jass::IsUnitType(u2, Jass::UNIT_TYPE_MECHANICAL)) {
                 MedicHealUnit(hero, u2, heal);
+                isAlly = true;
                 if (abilvl >= 2) {
                     HAddBuff_DR(u2, 'A198', Q_dr, Q_dr_Duration);
                 }
@@ -195,7 +195,7 @@ void Q_Impact(unit hero, float x, float y, int abilvl, bool fromPointCast) {
     }
     Jass::DestroyGroup(g);
 
-    if (abilvl >= 3 && fromPointCast) {
+    if (abilvl >= 3 && !isAlly) {
         Q_CreatePuddle(hero, x, y, heal);
     }
 }
@@ -208,13 +208,12 @@ void Q_ImpactTimer() {
     float x = Jass::LoadReal(SkillHT, th, 2);
     float y = Jass::LoadReal(SkillHT, th, 3);
     int abilvl = Jass::LoadInteger(SkillHT, th, 4);
-    bool fromPointCast = Jass::LoadInteger(SkillHT, th, 5) == 1;
 
     if (target != nil && !HIsUnitDead(target)) {
         x = Jass::GetUnitX(target);
         y = Jass::GetUnitY(target);
     }
-    Q_Impact(hero, x, y, abilvl, fromPointCast);
+    Q_Impact(hero, x, y, abilvl);
 
     Jass::FlushChildHashtable(SkillHT, th);
     Jass::DestroyTimer(t);
@@ -230,7 +229,7 @@ void Q_Cast(unit u, int abilId, int abilvl, unit target, float targX, float targ
     float tx = (target != nil) ? Jass::GetUnitX(target) : targX;
     float ty = (target != nil) ? Jass::GetUnitY(target) : targY;
     float dist = Jass::MathDistanceBetweenPoints(Jass::GetUnitX(u), Jass::GetUnitY(u), tx, ty);
-    float delay = HMinReal(0.45, 0.10 + dist / 1500.0);
+    float delay = 0.10 + dist / 910.0;
 
     timer t = Jass::CreateTimer();
     int th = Jass::GetHandleId(t);
@@ -239,7 +238,6 @@ void Q_Cast(unit u, int abilId, int abilvl, unit target, float targX, float targ
     Jass::SaveReal(SkillHT, th, 2, targX);
     Jass::SaveReal(SkillHT, th, 3, targY);
     Jass::SaveInteger(SkillHT, th, 4, abilvl);
-    Jass::SaveInteger(SkillHT, th, 5, (target == nil) ? 1 : 0);
     Jass::TimerStart(t, delay, false, @Q_ImpactTimer);
 
     if (target != nil) {
@@ -326,6 +324,7 @@ void W_CloudTick() {
     remaining -= 1.0;
     Jass::SaveReal(SkillHT, th, 2, remaining);
     if (remaining <= 0.0) {
+        Jass::KillUnit(cloud);
         Jass::FlushChildHashtable(SkillHT, th);
         Jass::DestroyTimer(t);
     }
@@ -342,7 +341,7 @@ void W_OnCloudSpawn(unit cloud) {
     if (hero == nil || HIsUnitDead(hero) || Jass::GetUnitAbilityLevel(hero, 'A0VI') <= 0) return;
 
     Jass::SetUnitAnimation(cloud, "birth");
-    Jass::DestroyEffect(Jass::AddSpecialEffectTarget(FX_CLOUD_SPAWN, cloud, "origin"));
+    Jass::AddSpecialEffectTarget(FX_CLOUD_SPAWN, cloud, "origin");
 
     float scale = 1.8;
     int abilvl = Jass::GetUnitAbilityLevel(hero, 'A0VI');
@@ -457,7 +456,7 @@ void W2_MoveTick() {
     }
 
     elapsed += 0.03;
-    float progress = elapsed / duration;
+    float progress = elapsed / duration;    
     if (progress > 1.0) {
         progress = 1.0;
     }
