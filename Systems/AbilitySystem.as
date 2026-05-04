@@ -24,6 +24,105 @@ void A004_Active(unit caster, int abilityId, int abilityLevel, unit target, floa
     Debug("A004_Active", "A004 casted by " + Jass::GetUnitName(caster));
 }
 
+
+
+void CraftingCast_Active_1(unit caster, int abilityId, int abilityLevel, unit target, float targX, float targY, ability abil) { //A01K 
+	for(int i = 0; i < 500; i++) {
+		if (Jass::GetUnitTypeId(Jass::GetSpellAbilityUnit()) == 'h01O' && Recipes_2[i].CheckRequirements(Jass::GetSpellAbilityUnit())) {
+			Recipes_2[i].CraftItem(Jass::GetSpellAbilityUnit());
+		}
+		if (Recipes_1[i].CheckRequirements(Jass::GetSpellAbilityUnit())) {
+			Recipes_1[i].CraftItem(Jass::GetSpellAbilityUnit());
+		}
+	}
+	Debug("CraftingCast_Active_1", "Crafting casted by " + Jass::GetUnitName(caster));
+}
+
+void CraftingCast_Active_2(unit caster, int abilityId, int abilityLevel, unit target, float targX, float targY, ability abil) { //A0OF 
+	for(int i = 0; i < 100; i++) {
+		if (Recipes_6[i].CheckRequirements(Jass::GetSpellAbilityUnit())) {
+			Recipes_6[i].CraftItem(Jass::GetSpellAbilityUnit());
+		}
+	}
+	Debug("CraftingCast_Active_2", "Crafting casted by " + Jass::GetUnitName(caster));
+}
+
+void CraftingCast_Active_3(unit caster, int abilityId, int abilityLevel, unit target, float targX, float targY, ability abil) { //A03M 
+	for(int i = 0; i < 20; i++) {
+		if (Recipes_10[i].CheckRequirements(Jass::GetSpellAbilityUnit())) {
+			Recipes_10[i].CraftItem(Jass::GetSpellAbilityUnit());
+		}
+	}
+	Debug("CraftingCast_Active_3", "Crafting casted by " + Jass::GetUnitName(caster));
+}
+
+void CraftingCast_Active_4(unit caster, int abilityId, int abilityLevel, unit target, float targX, float targY, ability abil) { //A0OG 
+	for(int i = 0; i < 100; i++) {
+		if (Recipes_7[i].CheckRequirements(Jass::GetSpellAbilityUnit())) {
+			Recipes_7[i].CraftItem(Jass::GetSpellAbilityUnit());
+		}
+	}
+	Debug("CraftingCast_Active_4", "Crafting casted by " + Jass::GetUnitName(caster));
+}
+
+void CraftingCast_Active_5(unit caster, int abilityId, int abilityLevel, unit target, float targX, float targY, ability abil) { //A0K9 
+	for(int i = 0; i < 100; i++) {
+		if (Recipes_9[i].CheckRequirements(Jass::GetSpellAbilityUnit())) {
+			Recipes_9[i].CraftItem(Jass::GetSpellAbilityUnit());
+		}
+	}
+	Debug("CraftingCast_Active_5", "Crafting casted by " + Jass::GetUnitName(caster));
+}
+
+void CraftingCast_Active_6(unit caster, int abilityId, int abilityLevel, unit target, float targX, float targY, ability abil) { //A01W 
+	for(int i = 0; i < 100; i++) {
+		if (Recipes_3[i].CheckRequirements(Jass::GetSpellAbilityUnit())) {
+			Recipes_3[i].CraftItem(Jass::GetSpellAbilityUnit());
+		}
+	}
+	Debug("CraftingCast_Active_6", "Crafting casted by " + Jass::GetUnitName(caster));
+}
+
+void CraftingCast_Active_7(unit caster, int abilityId, int abilityLevel, unit target, float targX, float targY, ability abil) { //A0BZ 
+	for(int i = 0; i < 100; i++) {
+		if (Recipes_5[i].CheckRequirements(Jass::GetSpellAbilityUnit())) {
+			Recipes_5[i].CraftItem(Jass::GetSpellAbilityUnit());
+		}
+	}
+	Debug("CraftingCast_Active_7", "Crafting casted by " + Jass::GetUnitName(caster));
+}
+
+void CraftingCast_Active_8(unit caster, int abilityId, int abilityLevel, unit target, float targX, float targY, ability abil) { //A0QX 
+	for(int i = 0; i < 10; i++) {
+		if (Recipes_4[i].CheckRequirements(Jass::GetSpellAbilityUnit())) {
+			Recipes_4[i].CraftItem(Jass::GetSpellAbilityUnit());
+		}
+	}
+	Debug("CraftingCast_Active_8", "Crafting casted by " + Jass::GetUnitName(caster));
+}
+
+void CraftingCast_Active_9(unit caster, int abilityId, int abilityLevel, unit target, float targX, float targY, ability abil) { //A0RD 
+	for(int i = 0; i < 10; i++) {
+		if (Recipes_1_1[i].CheckRequirements(Jass::GetSpellAbilityUnit())) {
+			Recipes_1_1[i].CraftItem(Jass::GetSpellAbilityUnit());
+		}
+	}
+	Debug("CraftingCast_Active_9", "Crafting casted by " + Jass::GetUnitName(caster));
+}
+
+void InitCraftingAbilities() {
+	RegisterAbilityCastHandler('A01K', @CraftingCast_Active_1);
+	RegisterAbilityCastHandler('A0OF', @CraftingCast_Active_2);
+	RegisterAbilityCastHandler('A03M', @CraftingCast_Active_3);
+	RegisterAbilityCastHandler('A0OG', @CraftingCast_Active_4);
+	RegisterAbilityCastHandler('A0K9', @CraftingCast_Active_5);
+	RegisterAbilityCastHandler('A01W', @CraftingCast_Active_6);
+	RegisterAbilityCastHandler('A0BZ', @CraftingCast_Active_7);
+	RegisterAbilityCastHandler('A0QX', @CraftingCast_Active_8);
+	RegisterAbilityCastHandler('A0RD', @CraftingCast_Active_9);
+	Debug("InitCraftingAbilities", "Crafting ability handlers registered");
+}
+
 void InitSkillAbilities() {
 	Debug("InitSkillAbilities", "Registering hero ability handlers");
     RegisterAbilityCastHandler('A004', @A004_Active);
@@ -44,6 +143,7 @@ void InitSkillAbilities() {
 	Debug("InitSkillAbilities", "Init Engineer skills");
     Engineer::InitEngineerSkills();
 	Debug("InitSkillAbilities", "All hero handlers registered");
+	InitCraftingAbilities();
     //RegisterAbilityCastHandler('A0A2', @A0A2_Active);
     //RegisterAbilityCastHandler('A0AL', @A0AL_Active);
     //RegisterAbilityCastHandler('A0BC', @A0BC_Active);   

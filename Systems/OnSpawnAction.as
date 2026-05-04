@@ -218,6 +218,10 @@ void OnUnitEnterMap() {
     }
 
     if(Jass::IsUnitHero(u) && !Jass::IsUnitIllusion(u) && Jass::GetUnitTypeId(u) != 'h04I' && Jass::GetPlayerId(Jass::GetOwningPlayer(u)) < 10) {
+        if (GoblinUnit[Jass::GetPlayerId(Jass::GetOwningPlayer(u))] != nil) {
+            Jass::RemoveUnit(u);   
+        }
+        
         GoblinUnit[Jass::GetPlayerId(Jass::GetOwningPlayer(u))] = u;
         Jass::GroupAddUnit(Goblinzz, u);
         Debug("OnUnitEnterMap", "hero registered=" + Jass::GetUnitName(u));

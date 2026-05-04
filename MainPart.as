@@ -1,6 +1,7 @@
 //import General.as
 //import Systems\\AbilitySystem.as
 //import Systems\\OnSpawnAction.as
+//import Systems\\SaveSystem.as
 //import Systems\\StartFlow.as
 //import Systems\\DamageSystem.as
 //import Systems\\Cheats.as
@@ -10,6 +11,7 @@
 //import Systems\\DeathSystem.as
 //import Systems\\CraftingSys.as
 //import Systems\\CraftingSystemFrame.as
+//import Systems\\UnitStatsFrame.as
 //import Systems\\GlibaPlacePoints.as
 //import Systems\\WavesMobs.as
 //import Systems\\MainMultiboard.as
@@ -23,6 +25,7 @@ timer GameStartTimer = nil;
 #include "General.as"
 #include "Systems\\AbilitySystem.as"
 #include "Systems\\OnSpawnAction.as"
+#include "Systems\\SaveSystem.as"
 #include "Systems\\StartFlow.as"
 #include "Systems\\DamageSystem.as"
 #include "Systems\\Cheats.as"
@@ -32,6 +35,7 @@ timer GameStartTimer = nil;
 #include "Systems\\DeathSystem.as"
 #include "Systems\\CraftingSys.as"
 #include "Systems\\CraftingSystemFrame.as"
+#include "Systems\\UnitStatsFrame.as"
 #include "Systems\\GlibaPlacePoints.as"
 #include "Systems\\PortalPath.as"
 #include "Systems\\WavesMobs.as"
@@ -589,18 +593,6 @@ bool IsPlaceableAtById( float x, float y )
     return Jass::IsUnitPlaceableAtById( 'h008', Jass::Player(0), x, y, 0, 0, 0, 0, true, false, false, false, false, false );
 }
 
-void InitSoldUnit() {
-    unit u = Jass::GetTriggerUnit();
-    unit buyer = Jass::GetBuyingUnit();
-    unit sold  = Jass::GetSoldUnit();
-    int soldId = Jass::GetUnitTypeId(sold);
-    if (Jass::GetUnitTypeId(buyer) != 'h088')
-        Jass::RemoveUnit(sold);
-    if (Jass::GetUnitTypeId(buyer) != 'h08F')
-        Jass::RemoveUnit(sold);
-    Debug("InitSoldUnit", "BuyerId: " + Jass::GetUnitTypeId(buyer) + " SoldId: " + soldId + "GetTriggerUnit:" + Jass::GetUnitName(u));
-}
-
 void SpawnInitResources() {
     // --------------------------------------------------------- Глыбы
     g_Gliba[0] = 'h008';
@@ -671,6 +663,32 @@ void TestAllPoints() {
         Jass::TextFileClose(file);
     });
     
+}
+
+void InitHungerSystem() {
+    timer t = Jass::CreateTimer();
+    Jass::TimerStart(t, 15.0, true, function() {
+        for(int i = 0; i <= 9; i++) {
+            if(GoblinUnit[i] != nil && GameStarted) {
+                food = Jass::GetPlayerState(Jass::GetOwningPlayer(GoblinUnit[i]), Jass::PLAYER_STATE_RESOURCE_LUMBER);
+                if(food <= 0) {
+                    Jass::SetUnitCurrentLife(GoblinUnit[i], Jass::GetUnitCurrentLife(GoblinUnit[i]) - Jass::GetUnitMaxLife(GoblinUnit[i]) * 0.25);
+                    Jass::SetUnitCurrentMana(GoblinUnit[i], Jass::GetUnitCurrentMana(GoblinUnit[i]) - Jass::GetUnitMaxMana(GoblinUnit[i]) * 0.25);
+                } else {
+                        UnitStatsData Stats;
+                        Stats.Reset();
+                        Stats.strength = 20*(Jass::GetHeroLevel(u)/10+1);
+                        Stats.agility = 20*(Jass::GetHeroLevel(u)/10+1);
+                        Stats.intelligence = 20*(Jass::GetHeroLevel(u)/10+1);
+                        Buff@ Buff = Buff("Сытость", "+20 к всем статам за уровень.",
+                            "ReplaceableTextures\\CommandButtons\\BTNDevour.blp.blp",
+                            'td01', 20.0, Stats, false, PURGE_NONE, 1, 0, true);
+                        ud.AddBuff(Buff, u);
+                }
+                Jass::SetPlayerState(Jass::GetOwningPlayer(GoblinUnit[i]), Jass::PLAYER_STATE_RESOURCE_LUMBER, Jass::GetPlayerState(Jass::GetOwningPlayer(GoblinUnit[i]), Jass::PLAYER_STATE_RESOURCE_LUMBER) - 1);
+            }
+        }
+    });
 }
 
 player FirstPlayer = nil;
@@ -787,6 +805,9 @@ void GameStart() {
             Jass::UnitShareVision( g_VisionGiver[2], Jass::Player(i), true );
             Jass::UnitShareVision( g_VisionGiver[3], Jass::Player(i), true );
             Jass::UnitShareVision( g_VisionGiver[4], Jass::Player(i), true );
+            if (Jass::GetLocalPlayer() == Jass::Player(i)) {
+                Jass::PanCameraToTimed(-6529.1, 6851.9, 1.);
+            }
         } else {
             Jass::RemoveUnit(g_HeroTaker2[i]);
             Jass::RemoveUnit(g_HeroTaker[i]);
@@ -805,6 +826,8 @@ void GameStart() {
     InitItemTriggers();
     Debug("GameStart", "Init step: InitSpawnTrigger");
     InitSpawnTrigger();
+    Debug("GameStart", "Init step: InitSaveSystem");
+    InitSaveSystem();
     Debug("GameStart", "Init step: InitDeathSystem");
     InitDeathSystem();
     Debug("GameStart", "Init step: InitAbilityCastSystem");
@@ -829,8 +852,10 @@ void GameStart() {
     InitBuffSystem();
     Debug("GameStart", "Init step: InitCraftingSystemFrame");
     InitCraftingSystemFrame();
-    Debug("GameStart", "Init step: InitSoldUnit");
-    InitSoldUnit();
+    Debug("GameStart", "Init step: InitUnitStatsFrame");
+    InitUnitStatsFrame();
+    Debug("GameStart", "Init step: HungerSystemInit");
+    InitHungerSystem();
     if(TestDebugMode) {
         Debug("GameStart", "Init step: InitCheats");
         InitCheats();

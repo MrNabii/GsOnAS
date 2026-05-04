@@ -552,27 +552,38 @@ void InitEngineerSkillTexts() {
         + "Использование по цели закрепляет маячка у цели, увеличивая им Хп на " + (W_main * 100) + "%, др на (" + (W_Start * 100) + " + Интелект/" + W_Then + ")%, маг резист на (" + (W_Start * 100) + " + Интелект/" + W_Then + ")%.");
 
     // WQ — Взрыв маячка (A0SB, 2-я способность или отдельная)
-    Jass::SetAbilityBaseStringLevelFieldById('A0SB', Jass::ABILITY_SLF_TOOLTIP_NORMAL_EXTENDED, 0,
+    Jass::SetAbilityBaseStringLevelFieldById('A024', Jass::ABILITY_SLF_TOOLTIP_NORMAL_EXTENDED, 0,
         "|cff00ff00Взрывает врагов вокруг и наносит магический урон. После взрыва, все скиллы не доступны в течений 10 секунд.\n\n"
         + (WQ_int * 100) + "% от РАЗУМА\n\nПерезарядка: 15 секунд.");
 
-    Jass::SetAbilityBaseStringLevelFieldById('A0SB', Jass::ABILITY_SLF_TOOLTIP_NORMAL_EXTENDED, 1,
+    Jass::SetAbilityBaseStringLevelFieldById('A024', Jass::ABILITY_SLF_TOOLTIP_NORMAL_EXTENDED, 1,
         "|cff00ff00Взрывает врагов вокруг и наносит магический урон и станит на " + WQ_Stun + " сек. После взрыва, все скиллы не доступны в течений 10 секунд.\n\n"
         + (WQ_int * 100) + "% от РАЗУМА\n\nПерезарядка: 15 секунд.");
 
-    Jass::SetAbilityBaseStringLevelFieldById('A0SB', Jass::ABILITY_SLF_TOOLTIP_NORMAL_EXTENDED, 2,
+    Jass::SetAbilityBaseStringLevelFieldById('A024', Jass::ABILITY_SLF_TOOLTIP_NORMAL_EXTENDED, 2,
         "|cff00ff00Взрывает врагов вокруг и наносит магический урон и станит на " + WQ_Stun + " сек, увеличивает получаемый урон на " + (WQ_dr * 100) + "%. После взрыва, все скиллы не доступны в течений 10 секунд.\n\n"
         + (WQ_int * 100) + "% от РАЗУМА\n\nПерезарядка: 15 секунд.");
 
     // WW — Глыба (A0SB, 3-я способность или отдельная)
-    Jass::SetAbilityBaseStringLevelFieldById('A0SB', Jass::ABILITY_SLF_TOOLTIP_NORMAL_EXTENDED, 0,
+    Jass::SetAbilityBaseStringLevelFieldById('A025', Jass::ABILITY_SLF_TOOLTIP_NORMAL_EXTENDED, 0,
         "|cff00ff00Начинает идти к сторону глыбы и выбирает цвет глыбы. \n\nПерезарядка: 10 секунд.");
 
-    Jass::SetAbilityBaseStringLevelFieldById('A0SB', Jass::ABILITY_SLF_TOOLTIP_NORMAL_EXTENDED, 1,
+    Jass::SetAbilityBaseStringLevelFieldById('A025', Jass::ABILITY_SLF_TOOLTIP_NORMAL_EXTENDED, 1,
         "|cff00ff00Начинает идти к сторону глыбы и выбирает цвет глыбы. Увеличивая скорость бега на " + (WW_MS1 * 100) + "%.\n    \nПерезарядка: 15 секунд.");
 
-    Jass::SetAbilityBaseStringLevelFieldById('A0SB', Jass::ABILITY_SLF_TOOLTIP_NORMAL_EXTENDED, 2,
+    Jass::SetAbilityBaseStringLevelFieldById('A025', Jass::ABILITY_SLF_TOOLTIP_NORMAL_EXTENDED, 2,
         "|cff00ff00Начинает идти к сторону глыбы и выбирает цвет глыбы. Увеличивая скорость бега на " + (WW_MS1 * 100) + "%.\n\nПерезарядка: 15 секунд.");
+
+    // WE — Отменить
+        Jass::SetAbilityBaseStringLevelFieldById('A02F', Jass::ABILITY_SLF_TOOLTIP_NORMAL_EXTENDED, 0,
+        "|cff00ff00Отменить привыязку.");
+
+    Jass::SetAbilityBaseStringLevelFieldById('A02F', Jass::ABILITY_SLF_TOOLTIP_NORMAL_EXTENDED, 1,
+        "|cff00ff00Отменить привыязку.");
+
+    Jass::SetAbilityBaseStringLevelFieldById('A02F', Jass::ABILITY_SLF_TOOLTIP_NORMAL_EXTENDED, 2,
+        "|cff00ff00Отменить привыязку.");
+
 
     // E (A0M8) — Рудокоп
     Jass::SetAbilityBaseStringLevelFieldById('A0M8', Jass::ABILITY_SLF_TOOLTIP_NORMAL_EXTENDED, 0,

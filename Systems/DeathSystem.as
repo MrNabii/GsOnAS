@@ -125,9 +125,93 @@ void Tainik_Death(unit diedunit, unit killer) {
 }
 
 
+void OnGoblinDeath(unit diedunit, unit killer) {
+	Debug("OnGoblinDeath", "killed by=" + ((killer != nil) ? Jass::GetUnitName(killer) : "nil"));
+	player PLAYER = Jass::GetOwningPlayer(diedunit);
+	if(Jass::IsUnitInGroup(diedunit, Goblinzz)) {
+		Jass::GroupRemoveUnit(Goblinzz, diedunit);
+	}
+	if ( GameStarted ) {
+		if ( GetPlayerSlotState(PLAYER) == PLAYER_SLOT_STATE_PLAYING ) {
+            DisplayTextToPlayers( "|c00FF0000Последний раз гоблина видели здесь...|r" );
+            unit UnitPrizrak = CreateUnit( PLAYER, 'h076', GetUnitX(diedunit), GetUnitY(diedunit), 0 );
+        }
+	}
+	if(FirstOfGroup(Goblinzz) == null) {
+		DisplayTextToPlayers("Все гоблины мертвы! Сохранитесь командой -save, и не забудьте посетить наш Discord: https://discord.gg/TFstGynfdy");
+	}
+	//Jass::KillUnit( udg_Mara_unit[P_NUM] )// убиваем Мара, если он жив
+	//SaveCollecting(PLAYER) TODO Save SUS
+	diedunit = nil;
+	killer = nil;
+}
 
+void ItemDropChance(int ItemTypeId, int Chance, unit killer, unit diedunit) {
+	if(Jass::GetRandomInt(1, 100) <= Chance) {
+		CreateItemCustom( ItemTypeId, Jass::GetUnitX(diedunit), Jass::GetUnitY(diedunit) );
+	}
+}
 
+void OnEnemyDeath(unit diedunit, unit killer) {
+	switch(Jass::GetUnitTypeId(diedunit)) {
+		case 'n00D': ItemDropChance('I0O8', 2, killer,  diedunit); break;
+		case 'n00C': ItemDropChance('I0O8', 2, killer,  diedunit); break;
+		case 'n00E': ItemDropChance('I0O8', 2, killer,  diedunit); break;
+		case 'n00F': ItemDropChance('I0O8', 2, killer,  diedunit); break;
+		case 'n001': ItemDropChance('I0O9', 35, killer, diedunit); break;
+		case 'n002': ItemDropChance('I0O9', 35, killer, diedunit); break;
+		case 'n003': ItemDropChance('I0O9', 35, killer, diedunit); break;
+		case 'n004': ItemDropChance('I0O9', 35, killer, diedunit); break;
 
+		case 'n00H': ItemDropChance('I0OA', 2, killer,  diedunit); break;
+		case 'n00I': ItemDropChance('I0OA', 2, killer,  diedunit); break;
+		case 'n00J': ItemDropChance('I0OA', 2, killer,  diedunit); break;
+		case 'n00K': ItemDropChance('I0OA', 2, killer,  diedunit); break;
+		case 'n005': ItemDropChance('I0OE', 35, killer, diedunit); break;
+		case 'n006': ItemDropChance('I0OE', 35, killer, diedunit); break;
+		case 'n007': ItemDropChance('I0OE', 35, killer, diedunit); break;
+		case 'n008': ItemDropChance('I0OE', 35, killer, diedunit); break;
+
+		case 'n00M': ItemDropChance('I0OT', 2, killer,  diedunit); break;
+		case 'n00N': ItemDropChance('I0OT', 2, killer,  diedunit); break;
+		case 'n00O': ItemDropChance('I0OT', 2, killer,  diedunit); break;
+		case 'n00P': ItemDropChance('I0OT', 2, killer,  diedunit); break;
+		case 'n009': ItemDropChance('I0OU', 35, killer, diedunit); break;
+		case 'n00A': ItemDropChance('I0OU', 35, killer, diedunit); break;
+		case 'n00X': ItemDropChance('I0OU', 35, killer, diedunit); break;
+		case 'n00Y': ItemDropChance('I0OU', 35, killer, diedunit); break;
+
+		case 'n00T': ItemDropChance('I0Q2', 2, killer, diedunit); break;
+		case 'n00S': ItemDropChance('I0Q2', 2, killer, diedunit); break;
+		case 'n00U': ItemDropChance('I0Q2', 2, killer, diedunit); break;
+		case 'n00V': ItemDropChance('I0Q2', 2, killer, diedunit); break;
+		case 'n00Z': ItemDropChance('I0Q3', 35, killer, diedunit); break;
+		case 'n010': ItemDropChance('I0Q3', 35, killer, diedunit); break;
+		case 'n011': ItemDropChance('I0Q3', 35, killer, diedunit); break;
+		case 'n012': ItemDropChance('I0Q3', 35, killer, diedunit); break;
+
+		case 'n00D': case 'n00C': case 'n00E': case 'n00F': case 'n02E': case 'n02F': case 'n02G': case 'n02H': 
+		if(Jass::GetUnitTypeId(killer) == 'H001') {
+			ItemDropChance('I0AC', 4, killer, diedunit);
+		} else {
+			ItemDropChance('I0AB', 4, killer, diedunit);
+		} break;
+
+		case 'n00I': case 'n00J': case 'n00K': case 'n00U': case 'n01D': case 'n01K':
+		ItemDropChance('I0CQ', 2, killer, diedunit);
+
+		case 'n00G': 
+		ItemDropChance('I0Q5', 100, killer, diedunit); 
+		for(int i = 0; i < 10; i++) {
+			ItemDropChance('I0CQ', 75, killer, diedunit);
+		}
+		ItemDropChance('I03U', 100, killer, diedunit); 
+		break;
+	}
+	Debug("OnEnemyDeath", "killed by=" + ((killer != nil) ? Jass::GetUnitName(killer) : "nil"));
+	diedunit = nil;
+	killer = nil;
+}
 
 
 
@@ -160,6 +244,12 @@ void OnAnyDeath() {
 		if (cb !is null) {
 			cb(diedunit, killer);
 		}
+	}
+	if(Jass::IsUnitInGroup(diedunit, Goblinzz)) {
+		OnGoblinDeath(diedunit, killer);
+	}
+	if(Jass::IsUnitInGroup(diedunit, WS_AliveWaveUnits)) {
+		OnEnemyDeath(diedunit, killer);
 	}
 	diedunit = nil;
 	killer = nil;

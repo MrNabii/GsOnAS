@@ -40,12 +40,6 @@ int GC_MinInt(int a, int b) {
     return (a < b) ? a : b;
 }
 
-bool GC_IsAnalyzeCommand(string chatString) {
-    string cmd = Jass::SubString(chatString, 1, Jass::StringLength(chatString));
-    if (cmd == "a" or cmd == "f" or cmd == "ф" or cmd == "а") return true;
-    return false;
-}
-
 bool GC_IsShortModeOnCmd(string chatString) {
     string cmd = Jass::SubString(chatString, 1, Jass::StringLength(chatString));
     return cmd == "св" or cmd == "ыц" or cmd == "sw" or cmd == "cd";
@@ -67,16 +61,27 @@ bool GC_IsRepickCmd(string chatString) {
 }
 
 bool GC_IsCamCmd(string chatString) {
-    if (Jass::SubString(chatString, 1, 5) == "zoom") return true;
-    if (Jass::SubString(chatString, 1, 9) == "ящщь") return true;
-    if (Jass::SubString(chatString, 1, 4) == "cam") return true;
-    if (Jass::SubString(chatString, 1, 5) == "camm") return true;
-    if (Jass::SubString(chatString, 1, 4) == "rfv") return true;
-    if (Jass::SubString(chatString, 1, 4) == "pev") return true;
-    if (Jass::SubString(chatString, 1, 4) == "кам") return true;
-    if (Jass::SubString(chatString, 1, 5) == "камм") return true;
-    if (Jass::SubString(chatString, 1, 4) == "сфь") return true;
-    if (Jass::SubString(chatString, 1, 4) == "зум") return true;
+    int len = Jass::StringLength(chatString);
+    string sub;
+    
+    // Проверка 4-буквенных команд (после них должен быть пробел или конец)
+    if (len >= 5) {
+        sub = Jass::SubString(chatString, 1, 5);
+        if ((sub == "zoom" || sub == "ящщь" || sub == "camm" || sub == "камм") &&
+            (len == 5 || Jass::SubString(chatString, 5, 6) == " ")) {
+            return true;
+        }
+    }
+    
+    // Проверка 3-буквенных команд (после них должен быть пробел или конец)
+    if (len >= 4) {
+        sub = Jass::SubString(chatString, 1, 4);
+        if ((sub == "cam" || sub == "rfv" || sub == "pev" || sub == "кам" || sub == "сфь" || sub == "зум") &&
+            (len == 4 || Jass::SubString(chatString, 4, 5) == " ")) {
+            return true;
+        }
+    }
+    
     return false;
 }
 
@@ -250,6 +255,16 @@ void GC_OnChat() {
     GC_HandleKickVote(chatString, chatPlayer, convertedPid);
 
     Debug("GC_OnChat", "Chat command: " + chatString + " from player " + Jass::GetPlayerName(chatPlayer));
+
+    if (command == "save") {
+        SaveSystem_HandleSaveCommand(chatPlayer, payload);
+        return;
+    }
+
+    if (command == "load") {
+        SaveSystem_HandleLoadCommand(chatPlayer, payload);
+        return;
+    }
 
     if (Jass::SubString(chatString, 0, 5) == "-kick" or Jass::SubString(chatString, 0, 4) == "-кик") {
         if (udg_KS_CanVote) {
@@ -541,7 +556,6 @@ void GC_OnChat() {
             }
 
             Jass::SetPlayerState(chatPlayer, Jass::PLAYER_STATE_RESOURCE_GOLD, 0);
-            Jass::SetPlayerState(chatPlayer, Jass::PLAYER_STATE_RESOURCE_LUMBER, 0);
 
             ////for (i = 0; i < 100; i++) {
             //    if (!IsAccSave(i)) {

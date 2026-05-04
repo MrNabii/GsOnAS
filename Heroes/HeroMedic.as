@@ -70,13 +70,6 @@ bool MedicHasItem(unit u, int itemTypeId) {
     return false;
 }
 
-void MedicHealUnit(unit healer, unit target, float amount) {
-    if (target == nil || amount <= 0 || HIsUnitDead(target)) return;
-    float hp = Jass::GetUnitState(target, Jass::UNIT_STATE_LIFE);
-    float maxHp = Jass::GetUnitMaxLife(target);
-    Jass::SetUnitState(target, Jass::UNIT_STATE_LIFE, HMinReal(hp + amount, maxHp));
-}
-
 void MedicAddMainStatPctBuff(unit target, int buffId, float pct, float duration) {
     UnitData@ ud = GetUnitData(target);
     if (ud is null) return;
@@ -116,7 +109,7 @@ void Q_PuddleTick() {
 
     bool triggered = false;
     group g = Jass::CreateGroup();
-    Jass::GroupEnumUnitsInRange(g, Jass::GetUnitX(puddle), Jass::GetUnitY(puddle), 150.0, nil);
+    Jass::GroupEnumUnitsInRange(g, Jass::GetUnitX(puddle), Jass::GetUnitY(puddle), 85.0, nil);
     unit u2 = Jass::FirstOfGroup(g);
     while (u2 != nil) {
         Jass::GroupRemoveUnit(g, u2);
@@ -125,7 +118,7 @@ void Q_PuddleTick() {
             && !Jass::IsUnitType(u2, Jass::UNIT_TYPE_STRUCTURE)
             && !Jass::IsUnitType(u2, Jass::UNIT_TYPE_ANCIENT)
             && !Jass::IsUnitType(u2, Jass::UNIT_TYPE_MECHANICAL)) {
-            MedicHealUnit(hero, u2, heal);
+            Heal(hero, u2, heal);
             triggered = true;
         }
         u2 = Jass::FirstOfGroup(g);
@@ -146,14 +139,14 @@ void Q_PuddleTick() {
 
 void Q_CreatePuddle(unit hero, float x, float y, float healAmount) {
     unit puddle = Jass::CreateUnit(Jass::GetOwningPlayer(hero), 'h044', x, y, 0.0);
-    Jass::UnitApplyTimedLife(puddle, 'BFig', 5.0);
+    Jass::UnitApplyTimedLife(puddle, 'BFig', 13.0);
 
     timer t = Jass::CreateTimer();
     int th = Jass::GetHandleId(t);
     Jass::SaveUnitHandle(SkillHT, th, 0, puddle);
     Jass::SaveUnitHandle(SkillHT, th, 1, hero);
     Jass::SaveReal(SkillHT, th, 2, healAmount);
-    Jass::SaveInteger(SkillHT, th, 3, 20);
+    Jass::SaveInteger(SkillHT, th, 3, 50);
     Jass::TimerStart(t, 0.25, true, @Q_PuddleTick);
 }
 
@@ -179,7 +172,7 @@ void Q_Impact(unit hero, float x, float y, int abilvl) {
                 && !Jass::IsUnitType(u2, Jass::UNIT_TYPE_STRUCTURE)
                 && !Jass::IsUnitType(u2, Jass::UNIT_TYPE_ANCIENT)
                 && !Jass::IsUnitType(u2, Jass::UNIT_TYPE_MECHANICAL)) {
-                MedicHealUnit(hero, u2, heal);
+                Heal(hero, u2, heal);
                 isAlly = true;
                 if (abilvl >= 2) {
                     HAddBuff_DR(u2, 'A198', Q_dr, Q_dr_Duration);
@@ -229,7 +222,7 @@ void Q_Cast(unit u, int abilId, int abilvl, unit target, float targX, float targ
     float tx = (target != nil) ? Jass::GetUnitX(target) : targX;
     float ty = (target != nil) ? Jass::GetUnitY(target) : targY;
     float dist = Jass::MathDistanceBetweenPoints(Jass::GetUnitX(u), Jass::GetUnitY(u), tx, ty);
-    float delay = 0.10 + dist / 910.0;
+    float delay = 0.15 + dist / 900.0;
 
     timer t = Jass::CreateTimer();
     int th = Jass::GetHandleId(t);
@@ -312,7 +305,7 @@ void W_CloudTick() {
             && !Jass::IsUnitType(u2, Jass::UNIT_TYPE_STRUCTURE)
             && !Jass::IsUnitType(u2, Jass::UNIT_TYPE_ANCIENT)
             && !Jass::IsUnitType(u2, Jass::UNIT_TYPE_MECHANICAL)) {
-            MedicHealUnit(hero, u2, heal);
+            Heal(hero, u2, heal);
             if (abilvl >= 3 && !IsMedicHero(u2)) {
                 HGiveMana(u2, 1.0);
             }
@@ -346,9 +339,9 @@ void W_OnCloudSpawn(unit cloud) {
     float scale = 1.8;
     int abilvl = Jass::GetUnitAbilityLevel(hero, 'A0VI');
     if (abilvl == 2) {
-        scale *= 1.25;
+        scale *= 1.1;
     } else if (abilvl >= 3) {
-        scale *= 1.5;
+        scale *= 1.25;
     }
     Jass::SetUnitScale(cloud, scale, scale, scale);
 
@@ -478,13 +471,10 @@ void W2_MoveTick() {
                 && !Jass::IsUnitType(u2, Jass::UNIT_TYPE_STRUCTURE)
                 && !Jass::IsUnitType(u2, Jass::UNIT_TYPE_ANCIENT)
                 && !Jass::IsUnitType(u2, Jass::UNIT_TYPE_MECHANICAL)) {
-                MedicHealUnit(hero, u2, moveHeal);
-                Jass::DestroyEffect(Jass::AddSpecialEffectTarget(FX_CONCENTRATE_TICK, u2, "origin"));
+                Heal(hero, u2, moveHeal);
             } else if (Jass::IsUnitEnemy(u2, Jass::GetOwningPlayer(hero))
                        && !Jass::IsUnitType(u2, Jass::UNIT_TYPE_STRUCTURE)) {
                 HDealSpellDmg(hero, u2, moveDmg);
-                Jass::DestroyEffect(Jass::AddSpecialEffectTarget(
-                    "Abilities\\Weapons\\GreenDragonMissile\\GreenDragonMissile.mdl", u2, "origin"));
             }
         }
         u2 = Jass::FirstOfGroup(g);
@@ -562,7 +552,7 @@ void E_AllyTick() {
         return;
     }
 
-    MedicHealUnit(caster, target, heal);
+    Heal(caster, target, heal);
     Jass::DestroyEffect(Jass::AddSpecialEffectTarget(FX_INJECTION_ALLY, target, "origin"));
     if (doClean) {
         UnitData@ ud = GetUnitData(target);
@@ -598,7 +588,6 @@ void E_EnemyTick() {
     }
 
     HAOESpellDmg(caster, Jass::GetUnitX(tgt), Jass::GetUnitY(tgt), 350.0, dmg);
-    Jass::DestroyEffect(Jass::AddSpecialEffectTarget(FX_INJECTION_ENEMY, tgt, "origin"));
 
     // 2 ур.: AOE замедление
     if (abilvl >= 2) {
@@ -688,6 +677,9 @@ void R_LinkTick() {
     int th = Jass::GetHandleId(t);
     unit companion = Jass::LoadUnitHandle(SkillHT, th, 0);
     unit hero = Jass::LoadUnitHandle(SkillHT, th, 1);
+    lightning l1 = Jass::LoadLightningHandle(SkillHT, th, 2);
+    lightning l2 = Jass::LoadLightningHandle(SkillHT, th, 3);
+    int dt = Jass::LoadInteger(SkillHT, th, 4) + 0.1;
 
     if (companion == nil || hero == nil || HIsUnitDead(companion) || HIsUnitDead(hero)) {
         if (companion != nil) {
@@ -695,9 +687,31 @@ void R_LinkTick() {
             Jass::RemoveSavedHandle(SkillHT, ch, 'A0MA');
             Jass::RemoveSavedHandle(SkillHT, ch, 'A0MB');
         }
+        if (l1 != nil) {
+            Jass::DestroyLightning(l1);
+        }
+        if (l2 != nil) {
+            Jass::DestroyLightning(l2);
+        }
         Jass::FlushChildHashtable(SkillHT, th);
         Jass::DestroyTimer(t);
         return;
+    }
+
+    Jass::SaveInteger(SkillHT, th, 4, dt);
+    
+    Jass::SetLightningTargetX(l1, Jass::GetUnitX(hero));
+    Jass::SetLightningTargetY(l1, Jass::GetUnitY(hero));
+    Jass::SetLightningTargetZ(l1, Jass::GetUnitZ(hero) + 50.0);
+
+    Jass::SetLightningSourceX(l1, Jass::GetUnitX(hero));
+    Jass::SetLightningSourceY(l1, Jass::GetUnitY(hero));
+    Jass::SetLightningSourceZ(l1, Jass::GetUnitZ(hero) + 50.0);
+
+    if (dt < 2.0) {
+        return;
+    } else {
+        Jass::SaveInteger(SkillHT, th, 4, 0);
     }
 
     int ch = Jass::GetHandleId(companion);
@@ -723,9 +737,7 @@ void R_LinkTick() {
 
     if (Jass::GetUnitCurrentMana(hero) >= 1.0) {
         float heal = float(Jass::GetHeroStr(hero, true)) * R_str + float(Jass::GetHeroInt(hero, true)) * R_int;
-        MedicHealUnit(hero, target, heal);
-        Jass::DestroyEffect(Jass::AddSpecialEffectTarget(FX_LINK_HEAL, companion, "origin"));
-        Jass::DestroyEffect(Jass::AddSpecialEffectTarget(FX_LINK_HEAL, target, "origin"));
+        Heal(hero, target, heal);
         Jass::SetUnitCurrentMana(hero, Jass::GetUnitCurrentMana(hero) - 1.0);
     }
 }
@@ -733,6 +745,13 @@ void R_LinkTick() {
 void A0MA_Cast(unit u, int abilId, int abilvl, unit target, float targX, float targY, ability abil) {
     if (target == nil || u == nil) return;
     Debug("Medic::A0MA_Cast", "target=" + Jass::GetUnitName(target));
+    lightning l1 = Jass::AddLightningEx("HWSB",
+        Jass::GetUnitX(u), Jass::GetUnitY(u), Jass::GetUnitZ(u) + 50.0,
+        Jass::GetUnitX(target), Jass::GetUnitY(target), Jass::GetUnitZ(target) + 50.0);
+    
+    lightning l2 = Jass::AddLightningEx("HWSB",
+        Jass::GetUnitX(u), Jass::GetUnitY(u), Jass::GetUnitZ(u) + 50.0,
+        Jass::GetUnitX(target), Jass::GetUnitY(target), Jass::GetUnitZ(target) + 50.0);
 
     int pid = Jass::GetPlayerId(Jass::GetOwningPlayer(u));
     if (pid < 0 || pid >= 10) return;
@@ -740,9 +759,7 @@ void A0MA_Cast(unit u, int abilId, int abilvl, unit target, float targX, float t
     if (hero == nil || HIsUnitDead(hero)) return;
 
     float heal = float(Jass::GetHeroStr(hero, true)) * R_str + float(Jass::GetHeroInt(hero, true)) * R_int;
-    MedicHealUnit(hero, target, heal);
-    Jass::DestroyEffect(Jass::AddSpecialEffectTarget(FX_LINK_HEAL, u, "origin"));
-    Jass::DestroyEffect(Jass::AddSpecialEffectTarget(FX_LINK_HEAL, target, "origin"));
+    Heal(hero, target, heal);
 
     int uh = Jass::GetHandleId(u);
     Jass::SaveUnitHandle(SkillHT, uh, 'A0MA', target);
@@ -755,7 +772,9 @@ void A0MA_Cast(unit u, int abilId, int abilvl, unit target, float targX, float t
     int th = Jass::GetHandleId(t);
     Jass::SaveUnitHandle(SkillHT, th, 0, u);
     Jass::SaveUnitHandle(SkillHT, th, 1, hero);
-    Jass::TimerStart(t, 2.0, true, @R_LinkTick);
+    Jass::SaveLightningHandle(SkillHT, th, 2, l1);
+    Jass::SaveLightningHandle(SkillHT, th, 3, l2);
+    Jass::TimerStart(t, 0.1, true, @R_LinkTick);
 }
 
 void A011_Cast(unit u, int abilId, int abilvl, unit target, float targX, float targY, ability abil) {
@@ -903,6 +922,7 @@ void T_TargetTick() {
     unit target = Jass::LoadUnitHandle(SkillHT, th, 1);
     int abilvl = Jass::LoadInteger(SkillHT, th, 2);
     float remaining = Jass::LoadReal(SkillHT, th, 3);
+    effect eff = Jass::LoadEffectHandle(SkillHT, th, 4);
 
     bool invalidUnits = (hero == nil || target == nil || HIsUnitDead(hero) || HIsUnitDead(target));
     if (invalidUnits || remaining <= 0.0) {
@@ -912,14 +932,14 @@ void T_TargetTick() {
             Jass::RemoveSavedHandle(SkillHT, uh, MED_SAVE_HERO_KEY);
             Jass::UnitRemoveAbility(target, MED_SAVE_MARK_KEY);
         }
+        Jass::DestroyEffect(eff);
         Jass::FlushChildHashtable(SkillHT, th);
         Jass::DestroyTimer(t);
         return;
     }
 
     float heal = Jass::GetUnitMaxLife(target) * T_Procent + float(Jass::GetHeroInt(hero, true)) * T_int;
-    MedicHealUnit(hero, target, heal);
-    Jass::DestroyEffect(Jass::AddSpecialEffectTarget(FX_CONCENTRATE_TICK, target, "origin"));
+    Heal(hero, target, heal);
 
     if (abilvl >= 2) {
         HAddBuff_DR(target, 'A19L', T_dr, 1.05);
@@ -940,13 +960,13 @@ void T_TargetTick() {
 void T_ApplyToTarget(unit hero, unit target, int abilvl) {
     if (hero == nil || target == nil || HIsUnitDead(target)) return;
 
-    Jass::DestroyEffect(Jass::AddSpecialEffectTarget(FX_CONCENTRATE_TICK, target, "origin"));
-
     timer t = Jass::CreateTimer();
     int th = Jass::GetHandleId(t);
+    effect eff = Jass::AddSpecialEffectTarget("Objects\\Spawnmodels\\NightElf\\NEDeathMedium\\NEDeath.mdl", target, "origin");
     Jass::SaveUnitHandle(SkillHT, th, 0, hero);
     Jass::SaveUnitHandle(SkillHT, th, 1, target);
     Jass::SaveInteger(SkillHT, th, 2, abilvl);
+    Jass::SaveEffectHandle(SkillHT, th, 4, eff);
     Jass::SaveReal(SkillHT, th, 3, 8.0);
     Jass::TimerStart(t, 1.0, true, @T_TargetTick);
 
@@ -969,7 +989,6 @@ void T_Cast(unit u, int abilId, int abilvl, unit target, float targX, float targ
     float y = Jass::GetUnitY(u);
 
     Jass::SetUnitAnimation(u, "spell");
-    Jass::DestroyEffect(Jass::AddSpecialEffect(FX_CONCENTRATE_CAST, x, y));
 
     // AOE периодическое лечение союзников в 1200
     group g = Jass::CreateGroup();
@@ -1036,6 +1055,16 @@ void InitMedicSkillDesc() {
         + "Увеличивает дальность каста и радиус облака газа.\n\n"
         + PctText(W_int) + "% от РАЗУМА\n\n|cff6495edПерезарядка: 20 секунд.");
 
+    // W2
+    Jass::SetAbilityBaseStringLevelFieldById('A001', Jass::ABILITY_SLF_TOOLTIP_NORMAL_EXTENDED, 0,
+        "|cff00ff00Перемещает облако исцеляющего газа в указанную точку, исцеляя союзников и нанося врагам магический урон, равный 300% от РАЗУМА.");
+
+    Jass::SetAbilityBaseStringLevelFieldById('A001', Jass::ABILITY_SLF_TOOLTIP_NORMAL_EXTENDED, 1,
+        "|cff00ff00Перемещает облако исцеляющего газа в указанную точку, исцеляя союзников и нанося врагам магический урон, равный 300% от РАЗУМА.");
+
+    Jass::SetAbilityBaseStringLevelFieldById('A001', Jass::ABILITY_SLF_TOOLTIP_NORMAL_EXTENDED, 2,
+        "|cff00ff00Перемещает облако исцеляющего газа в указанную точку, исцеляя союзников и нанося врагам магический урон, равный 300% от РАЗУМА.");
+
     // E
     Jass::SetAbilityBaseStringLevelFieldById('A0JV', Jass::ABILITY_SLF_TOOLTIP_NORMAL_EXTENDED, 0,
         "|cff00ff00Заражает указанного юнита вирусом, из-за чего все враги рядом с зараженным получают магический урон каждую секунду "
@@ -1085,11 +1114,11 @@ void InitMedicSkillDesc() {
         + "Хилл: " + PctText(R_str) + "% от СИЛЫ и " + PctText(R_int) + "% от РАЗУМА\n\n|cff6495edПерезарядка: 5 секунд.");
 
     Jass::SetAbilityBaseStringLevelFieldById('A0MA', Jass::ABILITY_SLF_TOOLTIP_NORMAL_EXTENDED, 0,
-        "Выбирает цель, лечит здоровье раз в 2 секунды. Разрывается если уйти дальше "
+        "|cff00ff00Выбирает цель, лечит здоровье раз в 2 секунды. Разрывается если уйти дальше "
         + Jass::I2S(R_Range) + " радиуса или если поменять цель. Тратит 1 ману Медика за хилл.");
 
     Jass::SetAbilityBaseStringLevelFieldById('A011', Jass::ABILITY_SLF_TOOLTIP_NORMAL_EXTENDED, 0,
-        "Слабое Очищение. Очищает слабые дебаффы с цели.");
+        "|cff00ff00Слабое Очищение. Очищает слабые дебаффы с цели. Тратит 5 маны Медика");
 
     // T
     Jass::SetAbilityBaseStringLevelFieldById('A19L', Jass::ABILITY_SLF_TOOLTIP_NORMAL_EXTENDED, 0,
@@ -1120,8 +1149,8 @@ void InitMedicSkills() {
     RegisterAbilityCastHandler('A001', @W2_Cast);
     RegisterAbilityCastHandler('A0JV', @E_Cast);
     RegisterAbilityCastHandler('A19D', @R_Cast);
-    RegisterAbilityCastHandler('A0MA', @A0MA_Cast);
-    RegisterAbilityCastHandler('A011', @A011_Cast);
+    RegisterAbilityCastHandler('A0MA', @A0MA_Cast); //R1
+    RegisterAbilityCastHandler('A011', @A011_Cast); //R2
     RegisterAbilityCastHandler('A19L', @T_Cast);
 
     RegisterOnSpawnHandler('h031', @W_OnCloudSpawn);

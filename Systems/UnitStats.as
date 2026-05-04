@@ -19,6 +19,7 @@ class UnitStatsData {
     float intelligencePct;  // % Разум
     float mainStat;         // Основной стат
     float mainStatPct;      // % Основной стат
+    int mainStatType;       // Тип основного стата (0 - нет, 1 - сила, 2 - ловкость, 3 - разум)
 
     // Здоровье / Мана
     float hp;               // Хп
@@ -73,6 +74,7 @@ class UnitStatsData {
         agility = 0;     agilityPct = 0;
         intelligence = 0; intelligencePct = 0;
         mainStat = 0;    mainStatPct = 0;
+        mainStatType = 0;
         hp = 0;          hpPct = 0;
         mp = 0;          mpPct = 0;
         hpRegen = 0;     hpRegenPct = 0;    hpRegenPercent = 0;
@@ -121,6 +123,38 @@ class UnitStatsData {
         detection      += o.detection;       detectionPct     += o.detectionPct;
         luck           += o.luck;            luckPct          += o.luckPct;
     }
+
+    void SetBase(UnitStatsData o, unit u) {
+        if (o.strength != 0) { strength = o.strength; Jass::SetHeroStr(u, strength, true); }
+        else strength = Jass::GetHeroStr(u, true); 
+        if (o.agility != 0) { agility = o.agility; Jass::SetHeroAgi(u, agility, true); }
+        else agility = Jass::GetHeroAgi(u, true);
+        if (o.intelligence != 0) { intelligence = o.intelligence; Jass::SetHeroInt(u, intelligence, true); }
+        else intelligence = Jass::GetHeroInt(u, true);
+        if (o.hp != 0) { hp = o.hp; Jass::SetUnitState(u, Jass::UNIT_STATE_MAX_LIFE, hp); }
+        else hp = Jass::GetUnitState(u, Jass::UNIT_STATE_MAX_LIFE);
+        if (o.mp != 0) { mp = o.mp; Jass::SetUnitState(u, Jass::UNIT_STATE_MAX_MANA, mp); }
+        else mp = Jass::GetUnitState(u, Jass::UNIT_STATE_MAX_MANA);
+        if (o.moveSpeed != 0) { moveSpeed = o.moveSpeed; Jass::SetUnitMoveSpeed(u, moveSpeed); }
+        else moveSpeed = Jass::GetUnitMoveSpeed(u);
+        if (o.radius != 0) { radius = o.radius; Jass::SetUnitCurrentSight(u, radius); }
+        else radius = Jass::GetUnitCurrentSight(u);
+        if (o.luck != 0) { luck = o.luck; }
+        else luck = 0; // нет базовой удачи, только от предметов и баффов
+        if (o.hpRegen != 0) { hpRegen = o.hpRegen; Jass::SetUnitLifeRegen(u, hpRegen); }
+        else hpRegen = Jass::GetUnitLifeRegen(u);
+        if (o.mpRegen != 0) { mpRegen = o.mpRegen; Jass::SetUnitManaRegen(u, mpRegen); }
+        else mpRegen = Jass::GetUnitManaRegen(u);
+        if (o.armor != 0) { armor = o.armor; Jass::SetUnitArmour(u, armor); }
+        else armor = Jass::GetUnitArmour(u);
+        if (o.damage != 0) { damage = o.damage; Jass::SetUnitDamagePointByIndex(u, 0, damage); }
+        else damage = Jass::GetUnitDamagePointByIndex(u, 0);
+        critDamage = 0.5;
+        critChance = 0.2;
+        if (o.mainStatType != 0) { mainStatType = o.mainStatType; }
+        else mainStatType = 0;
+    }
+
 
 }
 
@@ -405,8 +439,8 @@ class UnitData {
     void ComputeStatDerived(int heroClass) {
         statDerived.Reset();
 
-        // Тип основного стата из базового шаблона (0=str, 1=agi, 2=int)
-        int mainStatType = Jass::R2I(baseStats.mainStat);
+        // Тип основного стата из базового шаблона (0 - нет, 1 - сила, 2 - ловкость, 3 - разум)
+        int mainStatType = baseStats.mainStatType;
 
         // mainStat бонус от предметов/баффов (без идентификатора из baseStats)
         float mainStatBonus = (totalStats.mainStat - baseStats.mainStat) * (1 + totalStats.mainStatPct / 100);
@@ -417,26 +451,26 @@ class UnitData {
         float effInt = totalStats.intelligence * (1 + totalStats.intelligencePct / 100);
 
         // Добавить mainStat бонус к соответствующему стату
-        if (mainStatType == 0)      { effStr += mainStatBonus; statDerived.strength += mainStatBonus; }
-        else if (mainStatType == 1) { effAgi += mainStatBonus; statDerived.agility += mainStatBonus; }
-        else                        { effInt += mainStatBonus; statDerived.intelligence += mainStatBonus; }
+        if (mainStatType == 1)      { effStr += mainStatBonus; statDerived.strength += mainStatBonus; }
+        else if (mainStatType == 2) { effAgi += mainStatBonus; statDerived.agility += mainStatBonus; }
+        else if (mainStatType == 3) { effInt += mainStatBonus; statDerived.intelligence += mainStatBonus; }
 
         float effMainTotal;
-        if (mainStatType == 0)      effMainTotal = effStr;
-        else if (mainStatType == 1) effMainTotal = effAgi;
-        else                        effMainTotal = effInt;
+        if (mainStatType == 1)      effMainTotal = effStr;
+        else if (mainStatType == 2) effMainTotal = effAgi;
+        else if (mainStatType == 3) effMainTotal = effInt;
 
         // ХП: mainStat*3 + str*8 (одинаково для всех)
         statDerived.hp += effMainTotal * 3.0 + effStr * 8.0;
 
         // Реген ХП: зависит от типа основного стата
-        if (mainStatType == 2) {
+        if (mainStatType == 3) {
             // int-герои (Инженер, Медик, Подрывник): int * 0.05
             statDerived.hpRegen += effInt * 0.05;
-        } else if (mainStatType == 0) {
+        } else if (mainStatType == 1) {
             // str-герои (Сталкер, Пироманьяк, Ракетчик): mainStat * 0.03 + int * 0.015
             statDerived.hpRegen += effMainTotal * 0.03 + effInt * 0.015;
-        } else {
+        } else if (mainStatType == 2) {
             // agi-герои (Снайпер, Пулемётчик): mainStat * 0.015 + int * 0.03
             statDerived.hpRegen += effMainTotal * 0.015 + effInt * 0.03;
         }
@@ -629,6 +663,7 @@ class UnitData {
 dictionary BaseStatsMap;   // ключ: unitTypeId, значение: UnitBaseTemplate@
 dictionary ItemStatsMap;   // ключ: itemTypeId, значение: ItemBaseTemplate@
 dictionary ItemInstanceMap; // ключ: itemHandleId, значение: ItemStats@
+dictionary ItemSaveIdMap;   // ключ: saveId, значение: itemTypeId
 
 // --- Шаблон базовых статов по типу юнита ---
 class UnitBaseTemplate {
@@ -674,7 +709,7 @@ UnitStatsData@ MakeStats(float hp, float mp, float damage, float armor, float at
     s.attackSpeed = attackSpeed;  s.moveSpeed = moveSpeed;
     s.hpRegen = hpRegen;  s.mpRegen = mpRegen;
     s.strength = str;  s.agility = agi;  s.intelligence = intel;
-    s.mainStat = mainSt;
+    s.mainStatType = mainSt;
     return s;
 }
 
@@ -719,6 +754,9 @@ void DefineItemStats(int itemTypeId, int itemLevel, UnitStatsData@ stats,
     tpl.stats = stats;
     string key = "" + itemTypeId;
     ItemStatsMap.set(key, @tpl);
+    if (saveId > 0) {
+        ItemSaveIdMap.set("" + saveId, itemTypeId);
+    }
 }
 
 // Получить шаблон предмета по типу
@@ -728,6 +766,15 @@ ItemBaseTemplate@ GetItemTemplate(int itemTypeId) {
     if (ItemStatsMap.get(key, @tpl))
         return tpl;
     return null;
+}
+
+int GetItemTypeIdBySaveId(int saveId) {
+    if (saveId <= 0) return 0;
+    int itemTypeId = 0;
+    if (ItemSaveIdMap.get("" + saveId, itemTypeId)) {
+        return itemTypeId;
+    }
+    return 0;
 }
 
 void SetItemTemplatePreferredSlot(int itemTypeId, int preferredSlot) {
@@ -1966,7 +2013,7 @@ void RegisterUnit(unit u) {
     int typeId = Jass::GetUnitTypeId(u);
     UnitBaseTemplate@ tpl = GetBaseTemplate(typeId);
     if (tpl !is null) {
-        ud.baseStats.Add(tpl.stats);
+        ud.baseStats.SetBase(tpl.stats, u);
     } else {
         // Для юнитов без шаблона не ломаем дефолтную скорость/ману.
         // Иначе ApplyToUnit выставляет скорость в 0.

@@ -299,7 +299,10 @@ void OnUnitDamaged() {
 
 
 
-
+    bool drawText = false;
+    if(drawText) {
+        Jass::SetTextTagColor(CreateTextTagTimed("" + int(amount), target, 0.02, 2.0), 100, 255, 100, 255);
+    }
 
     Jass::SetEventDamage(finalDamage);
     Debug("OnUnitDamaged", "\nDealing damage: " + finalDamage + " from " + ((source != nil) ? Jass::GetUnitName(source) : "nil") + " to " + ((target != nil) ? Jass::GetUnitName(target) : "nil"));
